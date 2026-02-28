@@ -638,10 +638,18 @@ export const CanvasPage = () => {
             }
         },
         deleteElement: () => {
-            if (selectedElementId) {
-                console.log(`Deleting element: ${selectedElementId} `);
-                // Future Implementation: Remove element from tree state
+            if (!selectedElementId || selectedElementId === 'canvas') {
+                setNotification('Select an element to delete');
+                return;
+            }
+
+            const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+            if (el) {
+                el.remove();
+                prepareCanvasElements(canvasRef.current);
+                setElementTree(generateTree(canvasRef.current));
                 setSelectedElementId(null);
+                setNotification('Element deleted');
             }
         },
         selectChildren: () => {
