@@ -151,8 +151,7 @@ export const CanvasPage = () => {
     return (
         <div style={{
             height: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
+            width: '100vw',
             background: 'var(--bg-dark)',
             color: 'var(--text-main)',
             overflow: 'hidden',
@@ -172,8 +171,8 @@ export const CanvasPage = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: headerOpen ? '0 1.5rem' : '0',
-                    zIndex: 1000,
-                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    zIndex: 2000,
+                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                     overflow: 'hidden'
                 }}
             >
@@ -183,14 +182,22 @@ export const CanvasPage = () => {
                     </button>
                     <div style={{ height: '24px', width: '1px', background: 'var(--border)' }} />
                     <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>{project.name}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: 'var(--bg-dark)', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
+                    <span style={{
+                        fontSize: '0.75rem',
+                        color: 'var(--text-muted)',
+                        background: 'rgba(255,255,255,0.05)',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        whiteSpace: 'nowrap'
+                    }}>
                         {project.layout}
                     </span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <button className="premium-button" style={{ height: '36px', padding: '0 1rem', background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                        <button className="premium-button" style={{ height: '36px', padding: '0 1rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
                             <Save size={18} />
                             Save
                         </button>
@@ -218,15 +225,15 @@ export const CanvasPage = () => {
                 style={{
                     position: 'fixed',
                     top: headerOpen ? '60px' : 0,
-                    left: 0,
+                    left: leftPanelOpen ? 0 : '-280px',
                     bottom: 0,
-                    width: leftPanelOpen ? '280px' : '0px',
-                    borderRight: leftPanelOpen ? '1px solid var(--border)' : 'none',
+                    width: '280px',
+                    borderRight: '1px solid rgba(255,255,255,0.1)',
                     display: 'flex',
                     flexDirection: 'column',
-                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                     overflow: 'hidden',
-                    zIndex: 900
+                    zIndex: 1500
                 }}
             >
                 <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -234,9 +241,6 @@ export const CanvasPage = () => {
                         <Layers size={18} color={accentColor} />
                         <span style={{ fontWeight: '600', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>Element Tree</span>
                     </div>
-                    <button onClick={() => setLeftPanelOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                        <PanelLeftClose size={18} />
-                    </button>
                 </div>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem', fontStyle: 'italic' }}>
@@ -251,19 +255,16 @@ export const CanvasPage = () => {
                 style={{
                     position: 'fixed',
                     top: headerOpen ? '60px' : 0,
-                    right: 0,
+                    right: rightPanelOpen ? 0 : '-320px',
                     bottom: 0,
-                    width: rightPanelOpen ? '320px' : '0px',
-                    borderLeft: rightPanelOpen ? '1px solid var(--border)' : 'none',
-                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    width: '320px',
+                    borderLeft: '1px solid rgba(255,255,255,0.1)',
+                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                     overflow: 'hidden',
-                    zIndex: 900
+                    zIndex: 1500
                 }}
             >
-                <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <button onClick={() => setRightPanelOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                        <PanelRightClose size={18} />
-                    </button>
+                <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span style={{ fontWeight: '600', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>Inspector</span>
                         <Settings size={18} color={accentColor} />
@@ -274,7 +275,7 @@ export const CanvasPage = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Element ID</label>
-                                <div style={{ padding: '0.5rem', background: 'var(--bg-dark)', borderRadius: '0.25rem', border: '1px solid var(--border)', fontSize: '0.875rem' }}>
+                                <div style={{ padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '0.25rem', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.875rem' }}>
                                     {selectedElementId}
                                 </div>
                             </div>
@@ -291,12 +292,13 @@ export const CanvasPage = () => {
             <div style={{
                 position: 'fixed',
                 right: '1.5rem',
-                top: headerOpen ? '80px' : '1.5rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.75rem',
-                zIndex: 1100,
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                zIndex: 2500,
+                transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
             }}>
                 {/* Header Toggle (Only when closed) */}
                 {!headerOpen && (
@@ -304,67 +306,69 @@ export const CanvasPage = () => {
                         onClick={() => setHeaderOpen(true)}
                         className="glass-panel"
                         style={{
-                            width: '44px',
-                            height: '44px',
-                            borderRadius: '0.75rem',
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '1rem',
                             color: 'var(--text-main)',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            transition: 'all 0.2s',
-                            border: '1px solid var(--border)',
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
                         }}
                         title="Expand Header"
                     >
-                        <ChevronDown size={20} />
+                        <ChevronDown size={22} />
                     </button>
                 )}
 
-                {/* Left Sidebar Toggle (Only when closed) */}
-                {!leftPanelOpen && (
-                    <button
-                        onClick={() => setLeftPanelOpen(true)}
-                        className="glass-panel"
-                        style={{
-                            width: '44px',
-                            height: '44px',
-                            borderRadius: '0.75rem',
-                            color: 'var(--text-muted)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
-                        }}
-                    >
-                        <PanelLeftOpen size={20} />
-                    </button>
-                )}
+                {/* Left Sidebar Toggle */}
+                <button
+                    onClick={() => setLeftPanelOpen(!leftPanelOpen)}
+                    className="glass-panel"
+                    style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '1rem',
+                        color: leftPanelOpen ? accentColor : 'var(--text-muted)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                        background: leftPanelOpen ? 'rgba(255,255,255,0.05)' : 'transparent'
+                    }}
+                    title={leftPanelOpen ? "Close Left Sidebar" : "Open Left Sidebar"}
+                >
+                    {leftPanelOpen ? <PanelLeftClose size={22} /> : <PanelLeftOpen size={22} />}
+                </button>
 
-                {/* Right Sidebar Toggle (Only when closed) */}
-                {!rightPanelOpen && (
-                    <button
-                        onClick={() => setRightPanelOpen(true)}
-                        className="glass-panel"
-                        style={{
-                            width: '44px',
-                            height: '44px',
-                            borderRadius: '0.75rem',
-                            color: 'var(--text-muted)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
-                        }}
-                    >
-                        <PanelRightOpen size={20} />
-                    </button>
-                )}
+                {/* Right Sidebar Toggle */}
+                <button
+                    onClick={() => setRightPanelOpen(!rightPanelOpen)}
+                    className="glass-panel"
+                    style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '1rem',
+                        color: rightPanelOpen ? accentColor : 'var(--text-muted)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                        background: rightPanelOpen ? 'rgba(255,255,255,0.05)' : 'transparent'
+                    }}
+                    title={rightPanelOpen ? "Close Right Sidebar" : "Open Right Sidebar"}
+                >
+                    {rightPanelOpen ? <PanelRightClose size={22} /> : <PanelRightOpen size={22} />}
+                </button>
 
                 {/* Selection Mode Toggle */}
                 <button
@@ -374,52 +378,63 @@ export const CanvasPage = () => {
                     }}
                     className="glass-panel"
                     style={{
-                        width: '44px',
-                        height: '44px',
-                        borderRadius: '0.75rem',
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '1rem',
                         background: isSelectionMode ? accentColor : 'transparent',
                         color: 'white',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        transition: 'all 0.2s',
-                        border: '1px solid var(--border)',
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
                     }}
                     title="Selection Mode"
                 >
-                    <MousePointer2 size={20} />
+                    <MousePointer2 size={22} />
                 </button>
             </div>
 
-            {/* Main Canvas Area */}
+            {/* Main Workspace Area (Scrollable) */}
             <main style={{
-                flex: 1,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 paddingTop: headerOpen ? '60px' : '0px',
                 paddingLeft: leftPanelOpen ? '280px' : '0px',
                 paddingRight: rightPanelOpen ? '320px' : '0px',
-                height: '100vh',
-                overflow: 'auto',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                background: '#0a0f1d', // Darker background for canvas area
+                transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                 display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                zIndex: 100
             }}>
-                <div style={{ width: '100%', padding: '3rem', display: 'flex', justifyContent: 'center', minHeight: '100%' }}>
+                {/* Canvas Frame */}
+                <div style={{
+                    width: '80vw',
+                    height: '80vh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    background: 'white',
+                    color: 'black',
+                    borderRadius: '1.25rem',
+                    boxShadow: '0 30px 80px rgba(0,0,0,0.8)',
+                    position: 'relative',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    overflow: 'hidden'
+                }}>
                     <div
                         ref={canvasRef}
                         style={{
                             width: '100%',
-                            maxWidth: '1200px',
-                            background: 'white',
-                            color: 'black',
-                            borderRadius: '0.5rem',
-                            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                            position: 'relative',
-                            transition: 'all 0.3s ease',
-                            minHeight: '800px'
+                            height: '100%',
+                            overflow: 'auto',
+                            padding: '1rem'
                         }}
                         dangerouslySetInnerHTML={{ __html: LAYOUT_TEMPLATES[project.layout] || LAYOUT_TEMPLATES['vertical'] }}
                     />
