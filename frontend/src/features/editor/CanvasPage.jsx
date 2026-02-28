@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { MousePointer2, Plus, ZoomOut, ZoomIn, RotateCcw, Minimize, Maximize, Grid3X3, Ruler, ChevronLeft, PanelLeftOpen, PanelRightOpen, Play, ChevronUp, Code, PanelLeftClose, PanelRightClose, Wand2, Type, Layout, Settings, Layers, ChevronRight, X, Copy, Square, Circle, Image, Type as TypeIcon, Save, History, Redo, Undo, Trash2, Edit3 } from 'lucide-react';
 import PromptModal from './components/PromptModal';
 import DetailedConfigModal from './components/DetailedConfigModal';
+import GlobalCssModal from './components/GlobalCssModal';
 import api from '../../shared/api/client';
 import { useTheme } from '../../shared/context/ThemeContext';
 import Notification from '../../components/ui/Notification';
@@ -202,6 +203,8 @@ export const CanvasPage = () => {
     const [cssProperties, setCssProperties] = useState([]);
     const [editJs, setEditJs] = useState('');
     const [isDetailedConfigOpen, setIsDetailedConfigOpen] = useState(false);
+    const [isGlobalCssModalOpen, setIsGlobalCssModalOpen] = useState(false);
+    const [globalCss, setGlobalCss] = useState('');
 
     const [notification, setNotification] = useState(null);
     const [clipboardData, setClipboardData] = useState(null);
@@ -396,6 +399,34 @@ export const CanvasPage = () => {
         setCanvasHtml(next);
         setNotification('Redo');
     }, [redoStack]);
+
+    const handleOpenGlobalCss = () => {
+        if (!canvasRef.current) return;
+        const styleEl = canvasRef.current.querySelector('style#global-project-styles');
+        setGlobalCss(styleEl ? styleEl.innerHTML : '');
+        setIsGlobalCssModalOpen(true);
+    };
+
+    const handleSaveGlobalCss = (cssText) => {
+        if (!canvasRef.current) return;
+        pushHistory(canvasRef.current.innerHTML);
+        let styleEl = canvasRef.current.querySelector('style#global-project-styles');
+
+        if (!cssText.trim()) {
+            if (styleEl) styleEl.remove();
+        } else {
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'global-project-styles';
+                canvasRef.current.prepend(styleEl);
+            }
+            styleEl.innerHTML = cssText;
+        }
+
+        setGlobalCss(cssText);
+        setNotification('Global CSS applied');
+        handleSave();
+    };
 
     const handleOpenDetailedConfig = () => {
         if (selectedElementId && selectedElementId !== 'canvas') {
@@ -1121,7 +1152,7 @@ export const CanvasPage = () => {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.5rem' }}>
-                            <Tooltip content="Toggle Layers" position="bottom">
+                            <Tooltip content="Toggle Layers (Alt+1)" position="bottom">
                                 <button
                                     onClick={() => setLeftPanelOpen(!leftPanelOpen)}
                                     style={{ background: 'none', border: 'none', color: leftPanelOpen ? accentColor : 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
@@ -1129,7 +1160,7 @@ export const CanvasPage = () => {
                                     {leftPanelOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
                                 </button>
                             </Tooltip>
-                            <Tooltip content="Toggle Inspector" position="bottom">
+                            <Tooltip content="Toggle Inspector (Alt+8)" position="bottom">
                                 <button
                                     onClick={() => setRightPanelOpen(!rightPanelOpen)}
                                     style={{ background: 'none', border: 'none', color: rightPanelOpen ? accentColor : 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
@@ -1140,6 +1171,16 @@ export const CanvasPage = () => {
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Tooltip content="Global CSS" position="bottom">
+                                <button
+                                    onClick={handleOpenGlobalCss}
+                                    style={{ height: '36px', width: '36px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+                                    onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                                    onMouseLeave={e => e.currentTarget.style.color = '#ccc'}
+                                >
+                                    <Code size={18} />
+                                </button>
+                            </Tooltip>
                             <button
                                 onClick={handleSave}
                                 className="premium-button"
@@ -1803,6 +1844,14 @@ export const CanvasPage = () => {
                 initialClasses={editClasses}
                 initialJs={editJs}
                 onSave={handleSaveDetailedConfig}
+                accentColor={accentColor}
+            />
+
+            <GlobalCssModal
+                isOpen={isGlobalCssModalOpen}
+                onClose={() => setIsGlobalCssModalOpen(false)}
+                initialCss={globalCss}
+                onSave={handleSaveGlobalCss}
                 accentColor={accentColor}
             />
         </div>
