@@ -116,7 +116,7 @@ const FloatingToolbox = ({ selectedElementId, canvasRef, actions, accentColor = 
                     <ActionButton
                         icon={<Wand2 size={16} />}
                         label="AI Spark"
-                        onClick={(e) => handleAction(e, () => { })}
+                        onClick={(e) => handleAction(e, actions.openSpark)}
                         hoverColor="#a855f7"
                         isSpark
                     />

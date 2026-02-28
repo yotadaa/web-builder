@@ -7,7 +7,7 @@ import 'prismjs/components/prism-css';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-markup';
 
-const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialStyles, initialClasses, initialJs, onSave, accentColor = '#6366f1' }) => {
+const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialStyles, initialClasses, initialJs, onSave, onSpark, accentColor = '#6366f1' }) => {
     const [activeTab, setActiveTab] = useState('html');
     const [html, setHtml] = useState('');
     const [styles, setStyles] = useState('');
@@ -119,7 +119,7 @@ const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialS
                         ))}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', paddingRight: '0.5rem' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #a855f7, #6366f1)', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                        <button onClick={onSpark} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #a855f7, #6366f1)', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
                             <Wand2 size={12} /> AI Spark
                         </button>
                     </div>

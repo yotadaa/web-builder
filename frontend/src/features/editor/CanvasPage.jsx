@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MousePointer2, Plus, ZoomOut, ZoomIn, RotateCcw, Minimize, Maximize, Grid3X3, Ruler, ChevronLeft, PanelLeftOpen, PanelRightOpen, Play, ChevronUp, Code, PanelLeftClose, PanelRightClose, Wand2, Type, Layout, Settings, Layers, ChevronRight, X, Copy, Square, Circle, Image, Type as TypeIcon, Save, History, Redo, Undo, Trash2, Edit3 } from 'lucide-react';
+import { MousePointer2, Plus, ZoomOut, ZoomIn, RotateCcw, Minimize, Maximize, Grid3X3, Ruler, ChevronLeft, PanelLeftOpen, PanelRightOpen, Play, ChevronUp, Code, PanelLeftClose, PanelRightClose, Wand2, Type, Layout, Settings, Layers, ChevronRight, X, Copy, Square, Circle, Image, Type as TypeIcon, Save, History, Redo, Undo, Trash2, Edit3, FileJson } from 'lucide-react';
 import PromptModal from './components/PromptModal';
 import DetailedConfigModal from './components/DetailedConfigModal';
 import GlobalCssModal from './components/GlobalCssModal';
 import GlobalJsModal from './components/GlobalJsModal';
+import SparkModal from './components/SparkModal';
 import api from '../../shared/api/client';
 import { useTheme } from '../../shared/context/ThemeContext';
 import Notification from '../../components/ui/Notification';
@@ -208,6 +209,8 @@ export const CanvasPage = () => {
     const [globalCss, setGlobalCss] = useState('');
     const [isGlobalJsModalOpen, setIsGlobalJsModalOpen] = useState(false);
     const [globalJs, setGlobalJs] = useState('');
+    const [isSparkModalOpen, setIsSparkModalOpen] = useState(false);
+    const [sparkContext, setSparkContext] = useState(null);
 
     const [notification, setNotification] = useState(null);
     const [clipboardData, setClipboardData] = useState(null);
@@ -464,6 +467,70 @@ export const CanvasPage = () => {
         if (selectedElementId && selectedElementId !== 'canvas') {
             setIsDetailedConfigOpen(true);
         }
+    };
+
+    const handleOpenSpark = (elementId) => {
+        if (!canvasRef.current || !elementId) return;
+        const el = canvasRef.current.querySelector(`[data-id="${elementId}"]`);
+        if (!el) return;
+
+        const gCss = canvasRef.current.querySelector('style#global-project-styles')?.innerHTML || '';
+        const gJs = canvasRef.current.querySelector('script#global-project-scripts')?.innerHTML || '';
+
+        setSparkContext({
+            global_css: gCss,
+            global_js: gJs,
+            element: {
+                element_id: elementId,
+                element_html: el.innerHTML,
+                element_css_classes: el.className,
+                element_inline_styles: el.getAttribute('style') || '',
+                element_js: '' // Simple editor might not have element-specific JS extracted easily yet
+            }
+        });
+        setIsSparkModalOpen(true);
+    };
+
+    const handleApplySpark = (suggestion) => {
+        if (!canvasRef.current || !sparkContext?.element?.element_id) return;
+
+        pushHistory(canvasRef.current.innerHTML);
+
+        const el = canvasRef.current.querySelector(`[data-id="${sparkContext.element.element_id}"]`);
+        if (el) {
+            if (suggestion.html !== undefined) el.innerHTML = suggestion.html;
+            if (suggestion.css_classes !== undefined) el.className = suggestion.css_classes;
+            if (suggestion.inline_styles !== undefined && suggestion.inline_styles !== null) {
+                // If it's a string, we can just set attribute
+                if (typeof suggestion.inline_styles === 'string') {
+                    el.setAttribute('style', suggestion.inline_styles);
+                }
+            }
+        }
+
+        if (suggestion.global_css_additions) {
+            let styleEl = canvasRef.current.querySelector('style#global-project-styles');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'global-project-styles';
+                canvasRef.current.prepend(styleEl);
+            }
+            styleEl.innerHTML += `\n/* AI Spark Addition */\n${suggestion.global_css_additions}`;
+        }
+
+        if (suggestion.global_js_additions) {
+            let scriptEl = canvasRef.current.querySelector('script#global-project-scripts');
+            if (!scriptEl) {
+                scriptEl = document.createElement('script');
+                scriptEl.id = 'global-project-scripts';
+                scriptEl.type = 'text/javascript';
+                canvasRef.current.appendChild(scriptEl);
+            }
+            scriptEl.innerHTML += `\n/* AI Spark Addition */\n${suggestion.global_js_additions}`;
+        }
+
+        setNotification(`Spark applied to ${sparkContext.element.element_id}`);
+        handleSave();
     };
 
     const handleSaveDetailedConfig = ({ html, styles, classes, js }) => {
@@ -1525,6 +1592,7 @@ export const CanvasPage = () => {
                             {selectedElementId && selectedElementId !== 'canvas' && (
                                 <Tooltip content="AI Spark">
                                     <button
+                                        onClick={() => handleOpenSpark(selectedElementId)}
                                         style={{
                                             background: 'linear-gradient(135deg, #a855f7, #6366f1)',
                                             color: '#fff',
@@ -1867,7 +1935,8 @@ export const CanvasPage = () => {
                     delete: shortcutActions.deleteElement,
                     duplicate: shortcutActions.duplicateElement,
                     rename: shortcutActions.renameElement,
-                    openConfig: handleOpenDetailedConfig
+                    openConfig: handleOpenDetailedConfig,
+                    openSpark: () => handleOpenSpark(selectedElementIds.length === 1 ? selectedElementIds[0] : null)
                 }}
                 accentColor={accentColor}
             />
@@ -1908,6 +1977,10 @@ export const CanvasPage = () => {
                 initialClasses={editClasses}
                 initialJs={editJs}
                 onSave={handleSaveDetailedConfig}
+                onSpark={() => {
+                    setIsDetailedConfigOpen(false);
+                    handleOpenSpark(selectedElementId);
+                }}
                 accentColor={accentColor}
             />
 
@@ -1925,6 +1998,13 @@ export const CanvasPage = () => {
                 initialJs={globalJs}
                 onSave={handleSaveGlobalJs}
                 accentColor="#f7df1e"
+            />
+
+            <SparkModal
+                isOpen={isSparkModalOpen}
+                onClose={() => setIsSparkModalOpen(false)}
+                context={sparkContext}
+                onApply={handleApplySpark}
             />
         </div>
     );

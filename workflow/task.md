@@ -50,6 +50,12 @@
         - [x] Replaced Global CSS Config logo with `{ }`
         - [x] Added placeholder AI Spark buttons to Detailed Config Modal and Floating Toolbox
         - [x] Added Global Script (JS) Config modal and tools
+
+    - [x] AI Spark Integration
+        - [x] Create `spark_service.py` with LLM prompt building and JSON schema enforcement
+        - [x] Add `POST /api/ai/spark` endpoint in backend
+        - [x] Build `SparkModal.jsx` for prompt input and 3-variant preview
+        - [x] Wire `SparkModal` to `CanvasPage.jsx` payload and handle apply logic
     - [x] Workspace Layout Refactoring <!-- id: 29 -->
         - [x] **Fixed Panels**: Sidebar and Header now use a robust fixed positioning system relative to the viewport.
         - [x] **Floating Navigation Tools**: Centralized toggles for sidebars and selection mode into a right-aligned floating group.

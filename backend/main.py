@@ -9,6 +9,7 @@ load_dotenv()
 
 from app.auth.routes import router as auth_router
 from app.projects.routes import router as projects_router
+from app.ai.routes import router as ai_router
 
 app = FastAPI(title="Web Builder API")
 
@@ -45,6 +46,7 @@ async def health_check():
 
 app.include_router(auth_router, prefix="/api")
 app.include_router(projects_router, prefix="/api")
+app.include_router(ai_router, prefix="/api")
 
 # Serve Frontend static files
 dist_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
