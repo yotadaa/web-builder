@@ -37,7 +37,7 @@
 - [x] **Auth Extension**: Extended login session to 24 hours (1440 minutes).
 - [x] **Backend Health**: Added global 500 exception handler for detailed error logging.
 - [x] **Optimized Rendering**: Replaced redundant DOM syncs with robust tree generation logic.
-- [x] **Element Manipulation**: Implemented "Add Element" (+) with selection validation and floating notification.
+- [x] **Element Manipulation**: Implemented "Add Element" (+), Duplicate (Ctrl+D), Rename (Ctrl+R), Copy/Paste (Ctrl+C/V), and Property Copy/Paste (Ctrl+Alt+C/V).
 
 ## Next Steps
 1. Implement AI Fast Pipeline (Phase 3) for quick UI generations.

@@ -64,11 +64,12 @@
     - [x] Database Migrations (Alembic)
     - [x] Frontend 'handleSave' Integration
     - [x] Load State from server on initialization
-- [x] 2.7 Element Addition & Validation
+- [x] 2.7 Element Manipulation & Hotkeys
     - [x] Floating Notification (Glassmorphism)
     - [x] Selection Validation (Add element restricted if no selection)
-    - [x] Add Element Keyboard Shortcut (A)
-    - [x] Element Tree Sync & selection (Child added to parent)
+    - [x] Full Figma-style Manipulation (Duplicate, Rename, Copy/Paste)
+    - [x] Property Sharing (Copy/Paste Styles)
+    - [x] Element Tree Sync & selection
 
 ## Phase 3: AI Fast Pipeline
 - [ ] 3.1 AI Gateway

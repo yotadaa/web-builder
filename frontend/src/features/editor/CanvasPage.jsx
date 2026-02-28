@@ -198,6 +198,8 @@ export const CanvasPage = () => {
     const [editJs, setEditJs] = useState('');
 
     const [notification, setNotification] = useState(null);
+    const [clipboardData, setClipboardData] = useState(null);
+    const [clipboardStyles, setClipboardStyles] = useState(null);
 
     const canvasRef = useRef(null);
 
@@ -317,6 +319,8 @@ export const CanvasPage = () => {
                 if (isTextWrapper) {
                     const text = el.textContent.trim();
                     name = text.length > 20 ? text.substring(0, 20) + '...' : text;
+                } else if (el.getAttribute('data-label')) {
+                    name = el.getAttribute('data-label');
                 } else {
                     // Check if it has any DIRECT text node (though most should be wrapped)
                     const directText = Array.from(el.childNodes)
@@ -522,9 +526,131 @@ export const CanvasPage = () => {
         zoomReset: () => setZoom(1),
         saveProject: handleSave,
         duplicateElement: () => {
-            if (selectedElementId) {
-                console.log(`Duplicating element: ${selectedElementId} `);
-                // Implementation would involve cloning element in tree
+            if (!selectedElementId || selectedElementId === 'canvas') {
+                setNotification('Select an element to duplicate');
+                return;
+            }
+
+            const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+            if (el) {
+                const clone = el.cloneNode(true);
+                const random = Math.random().toString(36).substring(2, 9);
+                const newId = `el-${Date.now()}-${random}`;
+                clone.setAttribute('data-id', newId);
+
+                // Recursively update children IDs to avoid duplicates
+                const updateChildIds = (node) => {
+                    Array.from(node.children).forEach(child => {
+                        const childRandom = Math.random().toString(36).substring(2, 9);
+                        child.setAttribute('data-id', `el-${Date.now()}-${childRandom}`);
+                        updateChildIds(child);
+                    });
+                };
+                updateChildIds(clone);
+
+                el.parentNode.insertBefore(clone, el.nextSibling);
+
+                prepareCanvasElements(canvasRef.current);
+                setElementTree(generateTree(canvasRef.current));
+                setSelectedElementId(newId);
+                setNotification('Element duplicated');
+            }
+        },
+        renameElement: () => {
+            if (!selectedElementId || selectedElementId === 'canvas') return;
+            const newName = window.prompt('Enter new name for this layer:', '');
+            if (newName) {
+                // In this simplified system, names are derived from tags/text
+                // To support custom names, we'd need a data-name attribute or similar
+                const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+                if (el) {
+                    el.setAttribute('data-label', newName); // Custom attribute for naming
+                    prepareCanvasElements(canvasRef.current);
+                    setElementTree(generateTree(canvasRef.current));
+                    setNotification('Element renamed');
+                }
+            }
+        },
+        copyElement: () => {
+            if (!selectedElementId || selectedElementId === 'canvas') return;
+            const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+            if (el) {
+                setClipboardData({
+                    html: el.outerHTML,
+                    styles: el.getAttribute('style'),
+                    classes: el.className
+                });
+                setNotification('Element copied to clipboard');
+            }
+        },
+        pasteElement: () => {
+            if (!clipboardData) {
+                setNotification('Clipboard is empty');
+                return;
+            }
+
+            let parent = canvasRef.current;
+            if (selectedElementId && selectedElementId !== 'canvas') {
+                const selected = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+                parent = selected?.parentElement || canvasRef.current;
+            }
+
+            const temp = document.createElement('div');
+            temp.innerHTML = clipboardData.html;
+            const newEl = temp.firstElementChild;
+
+            const random = Math.random().toString(36).substring(2, 9);
+            const newId = `el-${Date.now()}-${random}`;
+            newEl.setAttribute('data-id', newId);
+
+            parent.appendChild(newEl);
+            prepareCanvasElements(canvasRef.current);
+            setElementTree(generateTree(canvasRef.current));
+            setSelectedElementId(newId);
+            setNotification('Element pasted');
+        },
+        pasteOverSelection: () => {
+            if (!clipboardData) return;
+            if (!selectedElementId) {
+                shortcutActions.pasteElement();
+                return;
+            }
+
+            const parent = selectedElementId === 'canvas'
+                ? canvasRef.current
+                : canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+
+            if (parent) {
+                const temp = document.createElement('div');
+                temp.innerHTML = clipboardData.html;
+                const newEl = temp.firstElementChild;
+                const random = Math.random().toString(36).substring(2, 9);
+                const newId = `el-${Date.now()}-${random}`;
+                newEl.setAttribute('data-id', newId);
+
+                parent.appendChild(newEl);
+                prepareCanvasElements(canvasRef.current);
+                setElementTree(generateTree(canvasRef.current));
+                setSelectedElementId(newId);
+                setNotification('Element pasted into selection');
+            }
+        },
+        copyProperties: () => {
+            if (!selectedElementId || selectedElementId === 'canvas') return;
+            const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+            if (el) {
+                setClipboardStyles(el.getAttribute('style'));
+                setNotification('Properties copied');
+            }
+        },
+        pasteProperties: () => {
+            if (!clipboardStyles || !selectedElementId || selectedElementId === 'canvas') return;
+            const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+            if (el) {
+                el.setAttribute('style', clipboardStyles);
+                setNotification('Properties pasted');
+                // Force sync inspector
+                setCssProperties(parseInlineStyle(clipboardStyles));
             }
         },
         deleteElement: () => {
