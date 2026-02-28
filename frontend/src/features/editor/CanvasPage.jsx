@@ -397,8 +397,8 @@ export const CanvasPage = () => {
                     position: relative;
                 }
                 .element-hovered {
-                    background-color: ${accentColor}11 !important;
-                    box-shadow: inset 0 0 0 2px ${accentColor}44 !important;
+                    background-color: ${accentColor}33 !important;
+                    box-shadow: inset 0 0 0 2px ${accentColor}66 !important;
                 }
                 .element-selected {
                     box-shadow: inset 0 0 0 2px ${accentColor} !important;
