@@ -20,22 +20,6 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
             const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) ||
                 document.activeElement.isContentEditable;
 
-            // 1. Critical Shortcuts (Always enabled even if typing)
-
-            // Undo: Ctrl + Z
-            if (ctrl && key === 'z' && !shift) {
-                e.preventDefault();
-                actions.undo?.();
-                return;
-            }
-
-            // Redo: Ctrl + Y or Ctrl + Shift + Z
-            if (ctrl && (key === 'y' || (key === 'z' && shift))) {
-                e.preventDefault();
-                actions.redo?.();
-                return;
-            }
-
             // Save: Ctrl + S
             if (ctrl && key === 's') {
                 e.preventDefault();
@@ -64,7 +48,7 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
                 return;
             }
 
-            // Full Screen Toggle: Ctrl + /
+            // Toggle Full Screen: Ctrl + /
             if (ctrl && e.key === '/') {
                 e.preventDefault();
                 actions.toggleFullScreen?.();
@@ -74,6 +58,19 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
             // If typing and not a combo/special key above, block other shortcuts
             if (isTyping) return;
 
+            // Undo: Ctrl + Z
+            if (ctrl && key === 'z' && !shift) {
+                e.preventDefault();
+                actions.undo?.();
+                return;
+            }
+
+            // Redo: Ctrl + Y or Ctrl + Shift + Z
+            if (ctrl && (key === 'y' || (key === 'z' && shift))) {
+                e.preventDefault();
+                actions.redo?.();
+                return;
+            }
             // 2. UI / Workspace Control
             // Left Panel: Alt + 1
             if (alt && key === '1') {

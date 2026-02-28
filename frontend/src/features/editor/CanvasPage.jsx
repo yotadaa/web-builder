@@ -446,7 +446,7 @@ export const CanvasPage = () => {
             el.setAttribute('data-js', js);
             prepareCanvasElements(canvasRef.current);
             setElementTree(generateTree(canvasRef.current));
-            setNotification('Detailed config updated');
+            setNotification(`Config ${selectedElementId} changed`);
             setEditHtml(html);
             setEditClasses(classes);
             setCssProperties(parseInlineStyle(styles));
