@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MousePointer2, Plus, ZoomOut, ZoomIn, RotateCcw, Minimize, Maximize, Grid3X3, Ruler, ChevronLeft, PanelLeftOpen, PanelRightOpen, Play, ChevronUp, Code, PanelLeftClose, PanelRightClose, Wand2, Type, Layout, Settings, Layers, ChevronRight, X, Copy, Square, Circle, Image, Type as TypeIcon, Save, History, Redo, Undo, Trash2, Edit3 } from 'lucide-react';
 import PromptModal from './components/PromptModal';
+import DetailedConfigModal from './components/DetailedConfigModal';
 import api from '../../shared/api/client';
 import { useTheme } from '../../shared/context/ThemeContext';
 import Notification from '../../components/ui/Notification';
@@ -200,6 +201,7 @@ export const CanvasPage = () => {
     const [editClasses, setEditClasses] = useState('');
     const [cssProperties, setCssProperties] = useState([]);
     const [editJs, setEditJs] = useState('');
+    const [isDetailedConfigOpen, setIsDetailedConfigOpen] = useState(false);
 
     const [notification, setNotification] = useState(null);
     const [clipboardData, setClipboardData] = useState(null);
@@ -395,6 +397,31 @@ export const CanvasPage = () => {
         setNotification('Redo');
     }, [redoStack]);
 
+    const handleOpenDetailedConfig = () => {
+        if (selectedElementId && selectedElementId !== 'canvas') {
+            setIsDetailedConfigOpen(true);
+        }
+    };
+
+    const handleSaveDetailedConfig = ({ html, classes, js }) => {
+        if (!selectedElementId || selectedElementId === 'canvas') return;
+        pushHistory(canvasRef.current.innerHTML);
+        const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+        if (el) {
+            el.innerHTML = html;
+            el.className = classes;
+            el.classList.add('canvas-element', 'element-selected');
+            el.setAttribute('data-js', js);
+            prepareCanvasElements(canvasRef.current);
+            setElementTree(generateTree(canvasRef.current));
+            setNotification('Detailed config updated');
+            setEditHtml(html);
+            setEditClasses(classes);
+            setEditJs(js);
+            handleSave();
+        }
+    };
+
     const handleApplyEdits = useCallback(() => {
         if (selectedElementIds.length > 0 && canvasRef.current) {
             // Push current state to history before changing
@@ -556,6 +583,7 @@ export const CanvasPage = () => {
         zoomIn: () => setZoom(prev => Math.min(prev + 0.1, 2)),
         zoomOut: () => setZoom(prev => Math.max(prev - 0.1, 0.5)),
         zoomReset: () => setZoom(1),
+        openDetailedConfig: handleOpenDetailedConfig,
         saveProject: handleSave,
         undo: undo,
         redo: redo,
@@ -1680,6 +1708,13 @@ export const CanvasPage = () => {
                                 >
                                     Apply Changes
                                 </button>
+                                <button
+                                    onClick={handleOpenDetailedConfig}
+                                    className="premium-button"
+                                    style={{ width: '100%', background: 'transparent', border: '1px solid var(--border)', marginTop: '0.5rem' }}
+                                >
+                                    <Settings size={16} /> Detailed Config (Ctrl+E)
+                                </button>
                             </div>
                         ) : (
                             <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
@@ -1724,7 +1759,8 @@ export const CanvasPage = () => {
                 actions={{
                     delete: shortcutActions.deleteElement,
                     duplicate: shortcutActions.duplicateElement,
-                    rename: shortcutActions.renameElement
+                    rename: shortcutActions.renameElement,
+                    openConfig: handleOpenDetailedConfig
                 }}
                 accentColor={accentColor}
             />
@@ -1754,6 +1790,17 @@ export const CanvasPage = () => {
                         }
                     }
                 }}
+            />
+
+            <DetailedConfigModal
+                isOpen={isDetailedConfigOpen}
+                onClose={() => setIsDetailedConfigOpen(false)}
+                elementId={selectedElementId}
+                initialHtml={editHtml}
+                initialClasses={editClasses}
+                initialJs={editJs}
+                onSave={handleSaveDetailedConfig}
+                accentColor={accentColor}
             />
         </div>
     );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Copy, Trash2, Edit3 } from 'lucide-react';
+import { Copy, Trash2, Edit3, Settings } from 'lucide-react';
 import Tooltip from '../../../components/ui/Tooltip';
 
 /**
@@ -104,6 +104,12 @@ const FloatingToolbox = ({ selectedElementId, canvasRef, actions, accentColor = 
                         icon={<Edit3 size={16} />}
                         label="Rename"
                         onClick={(e) => handleAction(e, actions.rename)}
+                        hoverColor={accentColor}
+                    />
+                    <ActionButton
+                        icon={<Settings size={16} />}
+                        label="Detailed Config"
+                        onClick={(e) => handleAction(e, actions.openConfig)}
                         hoverColor={accentColor}
                     />
                     <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />

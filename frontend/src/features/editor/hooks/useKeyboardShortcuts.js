@@ -57,6 +57,13 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
                 return;
             }
 
+            // Open Detailed Config: Ctrl + E
+            if (ctrl && key === 'e' && !shift) {
+                e.preventDefault();
+                actions.openDetailedConfig?.();
+                return;
+            }
+
             // Full Screen Toggle: Ctrl + /
             if (ctrl && e.key === '/') {
                 e.preventDefault();
