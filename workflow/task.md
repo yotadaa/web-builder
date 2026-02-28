@@ -32,7 +32,11 @@
     - [x] Toggle Selection Mode in Editor
     - [x] Visual Hover/Click Highlighting for elements
     - [x] Selected Element state management
-- [/] 2.3 Element Tree System <!-- id: 25 -->
+- [x] 2.3 Editor UI Enhancements <!-- id: 25 -->
+    - [x] Theme Configuration System (Accent Colors)
+    - [x] Collapsible Sidebars & Header (Workspace management)
+    - [x] Smooth Selection Outline (Theme-aware)
+- [/] 2.4 Element Tree System <!-- id: 26 -->
     - [ ] Initial Element Tree representation
     - [ ] Visual Element Tree sidebar
 
