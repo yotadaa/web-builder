@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, Code } from 'lucide-react';
+import Editor from 'react-simple-code-editor';
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/components/prism-css';
 
 const GlobalCssModal = ({ isOpen, onClose, initialCss, onSave, accentColor = '#10b981' }) => {
     const [css, setCss] = useState('');
@@ -50,9 +54,17 @@ const GlobalCssModal = ({ isOpen, onClose, initialCss, onSave, accentColor = '#1
                         {[...Array(50)].map((_, i) => <div key={i} style={{ paddingRight: '10px' }}>{i + 1}</div>)}
                     </div>
                     {/* Active Editor */}
-                    <div style={{ flex: 1, padding: '1rem', overflow: 'hidden', position: 'relative' }}>
-                        <div style={{ fontSize: '11px', color: '#858585', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Project-Wide CSS Styles</div>
-                        <textarea value={css} onChange={e => setCss(e.target.value)} spellCheck={false} placeholder=".my-global-class {&#10;  color: red;&#10;}&#10;&#10;h1 {&#10;  font-size: 2rem;&#10;}" style={{ ...editorStyle, height: 'calc(100% - 24px)' }} />
+                    <div style={{ flex: 1, padding: '1rem', overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ fontSize: '11px', color: '#858585', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>Project-Wide CSS Styles</div>
+                        <div style={{ ...editorStyle, flex: 1, background: '#1e1e1e', overflowY: 'auto', border: '1px solid #333', borderRadius: '4px' }}>
+                            <Editor
+                                value={css || ''}
+                                onValueChange={code => setCss(code)}
+                                highlight={code => Prism.highlight(code, Prism.languages.css, 'css')}
+                                padding={15}
+                                style={{ fontFamily: 'monospace', fontSize: 13, minHeight: '100%' }}
+                            />
+                        </div>
                     </div>
                 </div>
 

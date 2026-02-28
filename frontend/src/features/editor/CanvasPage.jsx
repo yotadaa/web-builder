@@ -1178,7 +1178,7 @@ export const CanvasPage = () => {
                                     onMouseEnter={e => e.currentTarget.style.color = '#fff'}
                                     onMouseLeave={e => e.currentTarget.style.color = '#ccc'}
                                 >
-                                    <Code size={18} />
+                                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '16px' }}>{`{ }`}</span>
                                 </button>
                             </Tooltip>
                             <button

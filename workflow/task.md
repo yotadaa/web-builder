@@ -46,6 +46,8 @@
         - [x] Implemented tooltips displaying sidebar keyboard shortcuts (Alt+1 / Alt+8)
         - [x] Updated Detailed Config notification to display `Config ${id} changed`
         - [x] Fixed Undo (Ctrl+Z) and Redo (Ctrl+Y/Shift+Z) logic to not intercept native text editor events
+        - [x] Integrated `react-simple-code-editor` and `prismjs` for VS Code-like syntax highlighting and native Tab behavior
+        - [x] Replaced Global CSS Config logo with `{ }`
     - [x] Workspace Layout Refactoring <!-- id: 29 -->
         - [x] **Fixed Panels**: Sidebar and Header now use a robust fixed positioning system relative to the viewport.
         - [x] **Floating Navigation Tools**: Centralized toggles for sidebars and selection mode into a right-aligned floating group.

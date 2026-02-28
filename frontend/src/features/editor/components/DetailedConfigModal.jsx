@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, Code, Layers, FileJson, Check } from 'lucide-react';
+import Editor from 'react-simple-code-editor';
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-markup';
 
 const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialStyles, initialClasses, initialJs, onSave, accentColor = '#6366f1' }) => {
     const [activeTab, setActiveTab] = useState('html');
@@ -43,20 +49,48 @@ const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialS
 
     const getEditorContent = () => {
         switch (activeTab) {
-            case 'html': return <textarea value={html} onChange={e => setHtml(e.target.value)} spellCheck={false} style={editorStyle} />;
+            case 'html': return (
+                <div style={{ ...editorStyle, background: '#1e1e1e', overflowY: 'auto', border: '1px solid #333', borderRadius: '4px' }}>
+                    <Editor
+                        value={html || ''}
+                        onValueChange={code => setHtml(code)}
+                        highlight={code => Prism.highlight(code, Prism.languages.html, 'html')}
+                        padding={15}
+                        style={{ fontFamily: 'monospace', fontSize: 13, minHeight: '100%' }}
+                    />
+                </div>
+            );
             case 'css': return (
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
                     <div>
                         <div style={{ fontSize: '11px', color: '#858585', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>CSS Classes</div>
-                        <input value={classes} onChange={e => setClasses(e.target.value)} spellCheck={false} placeholder="class1 class2..." style={{ ...editorStyle, height: '36px', background: 'rgba(0,0,0,0.2)', padding: '0 8px', borderRadius: '4px', border: '1px solid #333' }} />
+                        <input value={classes} onChange={e => setClasses(e.target.value)} spellCheck={false} placeholder="class1 class2..." style={{ ...editorStyle, height: '36px', background: 'rgba(0,0,0,0.2)', padding: '0 8px', borderRadius: '4px', border: '1px solid #333', overflowY: 'hidden' }} />
                     </div>
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <div style={{ fontSize: '11px', color: '#858585', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Inline Styles</div>
-                        <textarea value={styles} onChange={e => setStyles(e.target.value)} spellCheck={false} placeholder="color: red;&#10;margin-top: 10px;" style={{ ...editorStyle, flex: 1 }} />
+                        <div style={{ ...editorStyle, flex: 1, background: '#1e1e1e', overflowY: 'auto', border: '1px solid #333', borderRadius: '4px' }}>
+                            <Editor
+                                value={styles || ''}
+                                onValueChange={code => setStyles(code)}
+                                highlight={code => Prism.highlight(code, Prism.languages.css, 'css')}
+                                padding={15}
+                                style={{ fontFamily: 'monospace', fontSize: 13, minHeight: '100%' }}
+                            />
+                        </div>
                     </div>
                 </div>
             );
-            case 'js': return <textarea value={js} onChange={e => setJs(e.target.value)} spellCheck={false} placeholder="// Enter JavaScript logic..." style={editorStyle} />;
+            case 'js': return (
+                <div style={{ ...editorStyle, background: '#1e1e1e', overflowY: 'auto', border: '1px solid #333', borderRadius: '4px' }}>
+                    <Editor
+                        value={js || ''}
+                        onValueChange={code => setJs(code)}
+                        highlight={code => Prism.highlight(code, Prism.languages.javascript, 'javascript')}
+                        padding={15}
+                        style={{ fontFamily: 'monospace', fontSize: 13, minHeight: '100%' }}
+                    />
+                </div>
+            );
             default: return null;
         }
     };
