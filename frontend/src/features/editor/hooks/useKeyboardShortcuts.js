@@ -11,30 +11,63 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
         if (disabled) return;
 
         const handleKeyDown = (e) => {
-            // Helper to check if user is typing in an input/textarea
-            const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) ||
-                document.activeElement.isContentEditable;
-
-            if (isTyping && e.key !== 'Escape') return;
-
             const ctrl = e.ctrlKey || e.metaKey;
             const shift = e.shiftKey;
             const alt = e.altKey;
             const key = e.key.toLowerCase();
 
-            // 1. UI / Workspace Control
+            // Helper to check if user is typing in an input/textarea
+            const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) ||
+                document.activeElement.isContentEditable;
+
+            // 1. Critical Shortcuts (Always enabled even if typing)
+
+            // Undo: Ctrl + Z
+            if (ctrl && key === 'z' && !shift) {
+                e.preventDefault();
+                actions.undo?.();
+                return;
+            }
+
+            // Redo: Ctrl + Y or Ctrl + Shift + Z
+            if (ctrl && (key === 'y' || (key === 'z' && shift))) {
+                e.preventDefault();
+                actions.redo?.();
+                return;
+            }
+
+            // Save: Ctrl + S
+            if (ctrl && key === 's') {
+                e.preventDefault();
+                actions.saveProject?.();
+                return;
+            }
+
+            // Escape: Always allowed to blur
+            if (key === 'escape') {
+                actions.clearSelection?.();
+                if (isTyping) document.activeElement.blur();
+                return;
+            }
+
             // Toggle all panels: Ctrl + \
             if (ctrl && e.key === '\\') {
                 e.preventDefault();
                 actions.toggleAllPanels?.();
+                return;
             }
 
             // Full Screen Toggle: Ctrl + /
             if (ctrl && e.key === '/') {
                 e.preventDefault();
                 actions.toggleFullScreen?.();
+                return;
             }
 
+            // If typing and not a combo/special key above, block other shortcuts
+            if (isTyping) return;
+
+            // 2. UI / Workspace Control
             // Left Panel: Alt + 1
             if (alt && key === '1') {
                 e.preventDefault();
@@ -64,7 +97,7 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
                 if (alt) {
                     e.preventDefault();
                     actions.copyProperties?.();
-                } else if (!isTyping) { // Keep isTyping check for element copy
+                } else {
                     e.preventDefault();
                     actions.copyElement?.();
                 }
@@ -75,21 +108,15 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
                 if (alt) {
                     e.preventDefault();
                     actions.pasteProperties?.();
-                } else if (!isTyping) { // Keep isTyping check for element paste
+                } else {
                     e.preventDefault();
                     if (shift) actions.pasteOverSelection?.();
                     else actions.pasteElement?.();
                 }
             }
 
-            // Save: Ctrl + S
-            if (ctrl && key === 's') {
-                e.preventDefault();
-                actions.saveProject?.();
-            }
-
-            // 2. Navigation & View
-            // Zoom In: Ctrl + + (or = which is the same key)
+            // 3. Navigation & View
+            // Zoom In: Ctrl + +
             if (ctrl && (key === '+' || key === '=')) {
                 e.preventDefault();
                 actions.zoomIn?.();
@@ -107,7 +134,7 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
                 actions.zoomReset?.();
             }
 
-            // 3. Tool Selection
+            // 4. Tool Selection
             // Move/Selection Tool: V
             if (!ctrl && !alt && !shift && key === 'v') {
                 actions.toggleSelectionMode?.();
@@ -118,12 +145,7 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
                 actions.addElement?.();
             }
 
-            // 4. Selection & Element Navigation
-            // Clear Selection / None: Esc
-            if (key === 'escape') {
-                actions.clearSelection?.();
-            }
-
+            // 5. Selection & Element Navigation
             // Select Children: Enter
             if (key === 'enter' && !ctrl && !shift && !alt) {
                 e.preventDefault();
@@ -162,7 +184,6 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
 
             // Delete: Backspace or Delete
             if (key === 'backspace' || key === 'delete') {
-                // Only if not typing
                 actions.deleteElement?.();
             }
         };

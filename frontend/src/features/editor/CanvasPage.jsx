@@ -1,23 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { MousePointer2, Plus, ZoomOut, ZoomIn, RotateCcw, Minimize, Maximize, Grid3X3, Ruler, ChevronLeft, PanelLeftOpen, PanelRightOpen, Play, ChevronUp, Code, PanelLeftClose, PanelRightClose, Wand2, Type, Layout, Settings, Layers, ChevronRight, X, Copy, Square, Circle, Image, Type as TypeIcon, Save, History, Redo, Undo, Trash2, Edit3 } from 'lucide-react';
+import PromptModal from './components/PromptModal';
 import api from '../../shared/api/client';
 import { useTheme } from '../../shared/context/ThemeContext';
-import {
-    Layout, MousePointer2, ChevronLeft, Sidebar as SidebarIcon, Layers,
-    Settings, Save, Play, PanelLeftClose, PanelLeftOpen,
-    PanelRightClose, PanelRightOpen, ChevronUp, ChevronDown,
-    Search, ZoomIn, ZoomOut, Maximize, Grid3X3, Ruler,
-    ChevronRight, Code, Wand2, Type, RotateCcw, Minimize, Plus
-} from 'lucide-react';
-
 import Notification from '../../components/ui/Notification';
+import Tooltip from '../../components/ui/Tooltip';
+import FloatingToolbox from './components/FloatingToolbox';
 
 
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { LAYOUT_TEMPLATES } from './constants/layouts';
 
-const TreeItem = ({ item, depth, selectedId, onSelect, expandedNodes, onToggleExpand }) => {
-    const isSelected = selectedId === item.id;
+const TreeItem = ({ item, depth, selectedIds = [], onSelect, expandedNodes, onToggleExpand }) => {
+    const isSelected = selectedIds.includes(item.id);
     const isExpanded = expandedNodes.has(item.id);
     const hasChildren = item.children && item.children.length > 0;
     const indentation = depth * 16 + 8; // Increased indentation
@@ -96,7 +92,7 @@ const TreeItem = ({ item, depth, selectedId, onSelect, expandedNodes, onToggleEx
                     borderRadius: '0.375rem',
                     cursor: 'pointer',
                     background: isSelected ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                    border: `1px solid ${isSelected ? 'rgba(99, 102, 241, 0.4)' : 'transparent'} `,
+                    border: `1px solid ${isSelected ? 'rgba(99, 102, 241, 0.4)' : 'transparent'}`,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
@@ -138,17 +134,19 @@ const TreeItem = ({ item, depth, selectedId, onSelect, expandedNodes, onToggleEx
                 <div style={{ display: 'flex', alignItems: 'center', opacity: isSelected ? 1 : 0.7 }}>
                     {getIcon(item.tagName)}
                 </div>
-                <span style={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    fontWeight: isSelected ? '600' : '400',
-                    opacity: isSelected ? 1 : 0.8,
-                    fontSize: '0.75rem',
-                    letterSpacing: '0.01em'
-                }}>
-                    {item.name}
-                </span>
+                <Tooltip content={item.name} position="right">
+                    <span style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        fontWeight: isSelected ? '600' : '400',
+                        opacity: isSelected ? 1 : 0.8,
+                        fontSize: '0.75rem',
+                        letterSpacing: '0.01em'
+                    }}>
+                        {item.name}
+                    </span>
+                </Tooltip>
             </div>
             {hasChildren && isExpanded && (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -157,7 +155,7 @@ const TreeItem = ({ item, depth, selectedId, onSelect, expandedNodes, onToggleEx
                             key={child.id}
                             item={child}
                             depth={depth + 1}
-                            selectedId={selectedId}
+                            selectedIds={selectedIds}
                             onSelect={onSelect}
                             expandedNodes={expandedNodes}
                             onToggleExpand={onToggleExpand}
@@ -178,6 +176,7 @@ export const CanvasPage = () => {
     const [loading, setLoading] = useState(true);
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedElementId, setSelectedElementId] = useState(null);
+    const [selectedElementIds, setSelectedElementIds] = useState([]);
 
     const [leftPanelOpen, setLeftPanelOpen] = useState(false);
     const [rightPanelOpen, setRightPanelOpen] = useState(false);
@@ -188,7 +187,13 @@ export const CanvasPage = () => {
     const [zoom, setZoom] = useState(1);
     const [elementTree, setElementTree] = useState([]);
     const [expandedNodes, setExpandedNodes] = useState(new Set(['canvas']));
+    // Custom Modal States
+    const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+    const [renameTargetId, setRenameTargetId] = useState(null);
+    const [renameDefaultValue, setRenameDefaultValue] = useState('');
     const [canvasHtml, setCanvasHtml] = useState(null);
+    const [undoStack, setUndoStack] = useState([]);
+    const [redoStack, setRedoStack] = useState([]);
 
     // Inspector Edit States
     const [editHtml, setEditHtml] = useState('');
@@ -223,7 +228,7 @@ export const CanvasPage = () => {
     const stringifyProperties = useCallback((props) => {
         return props
             .filter(p => p.prop.trim() && p.value.trim())
-            .map(p => `${p.prop.trim()}: ${p.value.trim()}`)
+            .map(p => `${p.prop.trim()}: ${p.value.trim()} `)
             .join('; ');
     }, []);
 
@@ -234,6 +239,12 @@ export const CanvasPage = () => {
             return next;
         });
     };
+
+    const pushHistory = useCallback((content) => {
+        if (!content) return;
+        setUndoStack(prev => [...prev.slice(-49), content]); // Limit to 50 steps
+        setRedoStack([]);
+    }, []);
 
     const toggleExpand = useCallback((id) => {
         setExpandedNodes(prev => {
@@ -301,7 +312,7 @@ export const CanvasPage = () => {
                         const classes = el.className.split(' ')
                             .filter(c => !['canvas-element', 'element-selected', 'element-hovered', 'text-wrapper'].includes(c));
                         if (classes.length > 0) {
-                            name = `${tagName}.${classes[0]}`;
+                            name = `${tagName}.${classes[0]} `;
                         }
                     }
                 }
@@ -323,44 +334,91 @@ export const CanvasPage = () => {
                 const random = Math.random().toString(36).substring(2, 9);
                 el.setAttribute('data-id', `el-${Date.now()}-${random}`);
             }
-
-            // Text Editing Support
-            const isTextTag = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'BUTTON', 'A', 'LI'].includes(el.tagName);
-            if (isTextTag) {
-                el.contentEditable = 'true';
-
-                // Use onInput for real-time sync without cursor jumps
-                el.oninput = () => {
-                    const newHtml = canvasRef.current.innerHTML;
-                    lastSyncHtmlRef.current = newHtml;
-                    setCanvasHtml(newHtml);
-
-                    // If this element is selected, update inspector HTML too
-                    if (el.getAttribute('data-id') === selectedElementId) {
-                        setEditHtml(el.innerHTML);
-                    }
-                };
-
-                // Blur to ensure final sync and tree refresh
-                el.onblur = () => {
-                    setElementTree(generateTree(canvasRef.current));
-                };
-            }
         });
-    }, [selectedElementId, generateTree]);
+    }, []);
+
+    const handleSave = useCallback(async () => {
+        if (!id || !canvasRef.current) return;
+
+        try {
+            // 1. Clear visual highlights for a clean save
+            const allElements = canvasRef.current.querySelectorAll('.canvas-element');
+            allElements.forEach(el => el.classList.remove('element-selected', 'element-hovered'));
+
+            // 2. Save to backend
+            const cleanHtml = canvasRef.current.innerHTML;
+            await api.patch(`/projects/${id}`, {
+                name: project.name,
+                content: cleanHtml,
+                accent_color: accentColor
+            });
+
+            // 3. Restore visual highlights for the UI
+            selectedElementIds.forEach(id => {
+                if (id === 'canvas') return;
+                const el = canvasRef.current.querySelector(`[data-id="${id}"]`);
+                if (el) el.classList.add('element-selected');
+            });
+
+            // 4. Update local state to match
+            setCanvasHtml(cleanHtml);
+            console.log('Project saved successfully');
+        } catch (err) {
+            console.error('Save failed', err);
+        }
+    }, [id, project?.name, accentColor, selectedElementIds]);
+
+    const undo = useCallback(() => {
+        if (undoStack.length === 0) return;
+
+        const current = canvasRef.current.innerHTML;
+        const previous = undoStack[undoStack.length - 1];
+
+        setRedoStack(prev => [current, ...prev]);
+        setUndoStack(prev => prev.slice(0, -1));
+
+        setCanvasHtml(previous);
+        // Effects will sync DOM
+        setNotification('Undo');
+    }, [undoStack]);
+
+    const redo = useCallback(() => {
+        if (redoStack.length === 0) return;
+
+        const current = canvasRef.current.innerHTML;
+        const next = redoStack[0];
+
+        setUndoStack(prev => [...prev, current]);
+        setRedoStack(prev => prev.slice(1));
+
+        setCanvasHtml(next);
+        setNotification('Redo');
+    }, [redoStack]);
 
     const handleApplyEdits = useCallback(() => {
-        if (selectedElementId && canvasRef.current) {
-            if (selectedElementId === 'canvas') {
+        if (selectedElementIds.length > 0 && canvasRef.current) {
+            // Push current state to history before changing
+            pushHistory(canvasRef.current.innerHTML);
+
+            if (selectedElementIds.length === 1 && selectedElementIds[0] === 'canvas') {
                 canvasRef.current.innerHTML = editHtml;
             } else {
-                const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
-                if (el) {
-                    el.innerHTML = editHtml;
-                    // Preserve mandatory class
-                    el.className = `canvas-element ${editClasses}`.trim();
-                    el.setAttribute('style', stringifyProperties(cssProperties));
-                }
+                // Batch Update
+                selectedElementIds.forEach(id => {
+                    if (id === 'canvas') return;
+                    const el = canvasRef.current.querySelector(`[data-id="${id}"]`);
+                    if (el) {
+                        // For multi-select, we typically only apply Styles and Classes
+                        // as text content (editHtml) might be unique per element.
+                        // If only one is selected, we apply everything.
+                        if (selectedElementIds.length === 1) {
+                            el.innerHTML = editHtml;
+                        }
+
+                        el.className = `canvas-element ${editClasses}`.trim();
+                        el.setAttribute('style', stringifyProperties(cssProperties));
+                    }
+                });
             }
             // Strip temporary visual classes before saving
             const all = canvasRef.current.querySelectorAll('.canvas-element');
@@ -370,59 +428,26 @@ export const CanvasPage = () => {
             const newHtml = canvasRef.current.innerHTML;
             setCanvasHtml(newHtml);
 
-            // Re-apply selection visual to DOM (for current view)
-            if (selectedElementId !== 'canvas') {
-                const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+            // Re-apply selection visual to DOM
+            selectedElementIds.forEach(id => {
+                if (id === 'canvas') return;
+                const el = canvasRef.current.querySelector(`[data-id="${id}"]`);
                 if (el) el.classList.add('element-selected');
-            }
+            });
 
             // Refresh tree
             prepareCanvasElements(canvasRef.current);
             setElementTree(generateTree(canvasRef.current));
+            handleSave();
         }
-    }, [selectedElementId, editHtml, editClasses, cssProperties, stringifyProperties, prepareCanvasElements, generateTree]);
-
-    const handleSave = useCallback(async () => {
-        if (!id || !canvasRef.current) return;
-
-        // Auto-apply pending edits from inspector if an element is selected
-        if (selectedElementId) {
-            handleApplyEdits();
-        }
-
-        try {
-            // 1. Clear visual highlights for a clean save
-            const allElements = canvasRef.current.querySelectorAll('.canvas-element');
-            allElements.forEach(el => el.classList.remove('element-selected', 'element-hovered'));
-
-            // 2. Save to backend
-            const cleanHtml = canvasRef.current.innerHTML;
-            await api.put(`/projects/${id}`, {
-                name: project.name,
-                content: cleanHtml,
-                accent_color: accentColor
-            });
-
-            // 3. Restore visual highlights for the UI
-            if (selectedElementId && selectedElementId !== 'canvas') {
-                const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
-                if (el) el.classList.add('element-selected');
-            }
-
-            // 4. Update local state to match
-            setCanvasHtml(cleanHtml);
-            console.log('Project saved successfully');
-        } catch (err) {
-            console.error('Save failed', err);
-        }
-    }, [id, project?.name, accentColor, selectedElementId, handleApplyEdits]);
+    }, [selectedElementIds, editHtml, editClasses, cssProperties, stringifyProperties, prepareCanvasElements, generateTree, handleSave, pushHistory]);
 
     // Auto-save effect
     useEffect(() => {
         if (!canvasHtml) return;
         const timer = setTimeout(() => {
             handleSave();
-        }, 3000); // 3 second debounce
+        }, 500); // 500ms debounce for property edits/content changes
         return () => clearTimeout(timer);
     }, [canvasHtml, handleSave]);
 
@@ -532,50 +557,61 @@ export const CanvasPage = () => {
         zoomOut: () => setZoom(prev => Math.max(prev - 0.1, 0.5)),
         zoomReset: () => setZoom(1),
         saveProject: handleSave,
+        undo: undo,
+        redo: redo,
         duplicateElement: () => {
-            if (!selectedElementId || selectedElementId === 'canvas') {
-                setNotification('Select an element to duplicate');
+            const idsToDuplicate = selectedElementIds.filter(id => id !== 'canvas');
+            if (idsToDuplicate.length === 0) {
+                setNotification('Select element(s) to duplicate');
                 return;
             }
 
-            const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
-            if (el) {
-                const clone = el.cloneNode(true);
-                const random = Math.random().toString(36).substring(2, 9);
-                const newId = `el-${Date.now()}-${random}`;
-                clone.setAttribute('data-id', newId);
+            pushHistory(canvasRef.current.innerHTML);
+            const newIds = [];
+            idsToDuplicate.forEach(id => {
+                const el = canvasRef.current.querySelector(`[data-id="${id}"]`);
+                if (el) {
+                    const clone = el.cloneNode(true);
+                    const random = Math.random().toString(36).substring(2, 9);
+                    const newId = `el-${Date.now()}-${random}`;
+                    clone.setAttribute('data-id', newId);
 
-                // Recursively update children IDs to avoid duplicates
-                const updateChildIds = (node) => {
-                    Array.from(node.children).forEach(child => {
-                        const childRandom = Math.random().toString(36).substring(2, 9);
-                        child.setAttribute('data-id', `el-${Date.now()}-${childRandom}`);
-                        updateChildIds(child);
-                    });
-                };
-                updateChildIds(clone);
+                    // Recursively update children IDs to avoid duplicates
+                    const updateChildIds = (node) => {
+                        Array.from(node.children).forEach(child => {
+                            const childRandom = Math.random().toString(36).substring(2, 9);
+                            child.setAttribute('data-id', `el-${Date.now()}-${childRandom}`);
+                            updateChildIds(child);
+                        });
+                    };
+                    updateChildIds(clone);
 
-                el.parentNode.insertBefore(clone, el.nextSibling);
+                    el.parentNode.insertBefore(clone, el.nextSibling);
+                    newIds.push(newId);
+                }
+            });
 
-                prepareCanvasElements(canvasRef.current);
-                setElementTree(generateTree(canvasRef.current));
-                setSelectedElementId(newId);
-                setNotification('Element duplicated');
+            prepareCanvasElements(canvasRef.current);
+            setElementTree(generateTree(canvasRef.current));
+
+            if (newIds.length === 1) {
+                setSelectedElementId(newIds[0]);
+                setSelectedElementIds([newIds[0]]);
+            } else {
+                setSelectedElementIds(newIds);
+                setSelectedElementId(newIds[newIds.length - 1]);
             }
+
+            setNotification(`${idsToDuplicate.length} element(s) duplicated`);
+            handleSave();
         },
         renameElement: () => {
             if (!selectedElementId || selectedElementId === 'canvas') return;
-            const newName = window.prompt('Enter new name for this layer:', '');
-            if (newName) {
-                // In this simplified system, names are derived from tags/text
-                // To support custom names, we'd need a data-name attribute or similar
-                const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
-                if (el) {
-                    el.setAttribute('data-label', newName); // Custom attribute for naming
-                    prepareCanvasElements(canvasRef.current);
-                    setElementTree(generateTree(canvasRef.current));
-                    setNotification('Element renamed');
-                }
+            const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+            if (el) {
+                setRenameTargetId(selectedElementId);
+                setRenameDefaultValue(el.getAttribute('data-label') || el.innerText?.substring(0, 20) || 'Element');
+                setIsRenameModalOpen(true);
             }
         },
         copyElement: () => {
@@ -610,19 +646,25 @@ export const CanvasPage = () => {
             const newId = `el-${Date.now()}-${random}`;
             newEl.setAttribute('data-id', newId);
 
+            pushHistory(canvasRef.current.innerHTML);
             parent.appendChild(newEl);
             prepareCanvasElements(canvasRef.current);
             setElementTree(generateTree(canvasRef.current));
             setSelectedElementId(newId);
             setNotification('Element pasted');
+            handleSave();
         },
         pasteOverSelection: () => {
-            if (!clipboardData) return;
+            if (!clipboardData) {
+                setNotification('Clipboard is empty');
+                return;
+            }
             if (!selectedElementId) {
                 shortcutActions.pasteElement();
                 return;
             }
 
+            pushHistory(canvasRef.current.innerHTML);
             const parent = selectedElementId === 'canvas'
                 ? canvasRef.current
                 : canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
@@ -640,6 +682,7 @@ export const CanvasPage = () => {
                 setElementTree(generateTree(canvasRef.current));
                 setSelectedElementId(newId);
                 setNotification('Element pasted into selection');
+                handleSave();
             }
         },
         copyProperties: () => {
@@ -651,29 +694,55 @@ export const CanvasPage = () => {
             }
         },
         pasteProperties: () => {
-            if (!clipboardStyles || !selectedElementId || selectedElementId === 'canvas') return;
-            const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
-            if (el) {
-                el.setAttribute('style', clipboardStyles);
-                setNotification('Properties pasted');
-                // Force sync inspector
-                setCssProperties(parseInlineStyle(clipboardStyles));
-            }
-        },
-        deleteElement: () => {
-            if (!selectedElementId || selectedElementId === 'canvas') {
-                setNotification('Select an element to delete');
+            if (!clipboardStyles) {
+                setNotification('No properties copied');
                 return;
             }
 
-            const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
-            if (el) {
-                el.remove();
-                prepareCanvasElements(canvasRef.current);
-                setElementTree(generateTree(canvasRef.current));
-                setSelectedElementId(null);
-                setNotification('Element deleted');
+            const idsToPaste = selectedElementIds.filter(id => id !== 'canvas');
+            if (idsToPaste.length === 0) {
+                setNotification('Select element(s) to paste properties');
+                return;
             }
+
+            pushHistory(canvasRef.current.innerHTML);
+            idsToPaste.forEach(id => {
+                const el = canvasRef.current.querySelector(`[data-id="${id}"]`);
+                if (el) {
+                    el.setAttribute('style', clipboardStyles);
+                }
+            });
+
+            // Force sync inspector for primary element
+            if (selectedElementId && selectedElementId !== 'canvas') {
+                setCssProperties(parseInlineStyle(clipboardStyles));
+            }
+
+            setNotification(`Properties pasted to ${idsToPaste.length} element(s)`);
+            handleSave();
+        },
+        deleteElement: () => {
+            if (selectedElementIds.length === 0 || (selectedElementIds.length === 1 && selectedElementIds[0] === 'canvas')) {
+                setNotification('Select element(s) to delete');
+                return;
+            }
+
+            pushHistory(canvasRef.current.innerHTML);
+            // Filter out canvas and parents if children are also selected to avoid double delete errors
+            // though DOM el.remove() handles children automatically.
+            const idsToDelete = selectedElementIds.filter(id => id !== 'canvas');
+
+            idsToDelete.forEach(id => {
+                const el = canvasRef.current.querySelector(`[data-id="${id}"]`);
+                if (el) el.remove();
+            });
+
+            prepareCanvasElements(canvasRef.current);
+            setElementTree(generateTree(canvasRef.current));
+            setSelectedElementId(null);
+            setSelectedElementIds([]);
+            setNotification(`${idsToDelete.length} element(s) deleted`);
+            handleSave();
         },
         selectChildren: () => {
             if (canvasRef.current) {
@@ -815,6 +884,7 @@ export const CanvasPage = () => {
                         next.add(selectedElementId);
                         return next;
                     });
+                    handleSave();
                 }
             }
         }
@@ -852,27 +922,73 @@ export const CanvasPage = () => {
 
         const handleClick = (e) => {
             const target = e.target.closest('.canvas-element');
+            const isShift = e.shiftKey;
+            const isCtrl = e.ctrlKey || e.metaKey;
 
-            // If we're clicking a contentEditable element, don't preventDefault
-            // so the cursor can actually appear.
-            const isEditable = e.target.isContentEditable || e.target.closest('[contenteditable="true"]');
-
-            if (!isEditable) {
-                e.preventDefault();
-            }
+            e.preventDefault();
             e.stopPropagation();
 
-            const allElements = canvasRef.current.querySelectorAll('.canvas-element');
-            allElements.forEach(el => el.classList.remove('element-selected'));
-
-            if (target) {
-                const elementId = target.getAttribute('data-id');
-                setSelectedElementId(elementId);
-                target.classList.add('element-selected');
-            } else {
+            if (!target) {
                 // Clicked on empty canvas
                 setSelectedElementId('canvas');
+                setSelectedElementIds(['canvas']);
+                const allElements = canvasRef.current.querySelectorAll('.canvas-element');
+                allElements.forEach(el => el.classList.remove('element-selected'));
+                return;
             }
+
+            const elementId = target.getAttribute('data-id');
+            let nextIds = [...selectedElementIds];
+
+            if (isShift) {
+                // Multi-select or Deep-select
+                if (isCtrl) {
+                    // Deep Toggle (including children)
+                    const childIds = Array.from(target.querySelectorAll('.canvas-element')).map(el => el.getAttribute('data-id'));
+                    const allToToggle = [elementId, ...childIds];
+
+                    const anyIncluded = allToToggle.some(id => nextIds.includes(id));
+                    if (anyIncluded) {
+                        nextIds = nextIds.filter(id => !allToToggle.includes(id));
+                    } else {
+                        nextIds = [...new Set([...nextIds, ...allToToggle])];
+                    }
+                } else {
+                    // Simple Toggle
+                    if (nextIds.includes(elementId)) {
+                        nextIds = nextIds.filter(id => id !== elementId);
+                    } else {
+                        nextIds.push(elementId);
+                    }
+                }
+            } else {
+                // Normal single select
+                nextIds = [elementId];
+            }
+
+            // If empty, default to canvas
+            if (nextIds.length === 0) {
+                nextIds = ['canvas'];
+            }
+
+            // Remove canvas from multi-selection if other elements are selected
+            if (nextIds.length > 1 && nextIds.includes('canvas')) {
+                nextIds = nextIds.filter(id => id !== 'canvas');
+            }
+
+            setSelectedElementIds(nextIds);
+            setSelectedElementId(elementId); // Set last clicked as primary for inspector
+
+            // Sync DOM classes
+            const allElements = canvasRef.current.querySelectorAll('.canvas-element');
+            allElements.forEach(el => {
+                const id = el.getAttribute('data-id');
+                if (nextIds.includes(id)) {
+                    el.classList.add('element-selected');
+                } else {
+                    el.classList.remove('element-selected');
+                }
+            });
         };
 
         const canvas = canvasRef.current;
@@ -885,7 +1001,7 @@ export const CanvasPage = () => {
             canvas.removeEventListener('mouseout', handleMouseOut);
             canvas.removeEventListener('click', handleClick);
         };
-    }, [isSelectionMode, selectedElementId, accentColor]);
+    }, [isSelectionMode, selectedElementId, selectedElementIds, accentColor]);
 
     // Resizing Logic
     useEffect(() => {
@@ -939,6 +1055,10 @@ export const CanvasPage = () => {
                 <header
                     className="glass-panel"
                     style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
                         height: '60px',
                         display: 'flex',
                         alignItems: 'center',
@@ -946,7 +1066,8 @@ export const CanvasPage = () => {
                         padding: '0 1.5rem',
                         borderBottom: '1px solid rgba(255,255,255,0.1)',
                         zIndex: 2000,
-                        flexShrink: 0
+                        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                        overflow: 'hidden'
                     }}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -970,20 +1091,22 @@ export const CanvasPage = () => {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.5rem' }}>
-                            <button
-                                onClick={() => setLeftPanelOpen(!leftPanelOpen)}
-                                style={{ background: 'none', border: 'none', color: leftPanelOpen ? accentColor : 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
-                                title="Toggle Layers"
-                            >
-                                {leftPanelOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
-                            </button>
-                            <button
-                                onClick={() => setRightPanelOpen(!rightPanelOpen)}
-                                style={{ background: 'none', border: 'none', color: rightPanelOpen ? accentColor : 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
-                                title="Toggle Inspector"
-                            >
-                                {rightPanelOpen ? <PanelRightClose size={20} /> : <PanelRightOpen size={20} />}
-                            </button>
+                            <Tooltip content="Toggle Layers" position="bottom">
+                                <button
+                                    onClick={() => setLeftPanelOpen(!leftPanelOpen)}
+                                    style={{ background: 'none', border: 'none', color: leftPanelOpen ? accentColor : 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
+                                >
+                                    {leftPanelOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+                                </button>
+                            </Tooltip>
+                            <Tooltip content="Toggle Inspector" position="bottom">
+                                <button
+                                    onClick={() => setRightPanelOpen(!rightPanelOpen)}
+                                    style={{ background: 'none', border: 'none', color: rightPanelOpen ? accentColor : 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
+                                >
+                                    {rightPanelOpen ? <PanelRightClose size={20} /> : <PanelRightOpen size={20} />}
+                                </button>
+                            </Tooltip>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -1003,13 +1126,14 @@ export const CanvasPage = () => {
 
                         <div style={{ height: '24px', width: '1px', background: 'var(--border)' }} />
 
-                        <button
-                            onClick={() => setHeaderOpen(false)}
-                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
-                            title="Collapse Header"
-                        >
-                            <ChevronUp size={20} />
-                        </button>
+                        <Tooltip content="Collapse Header" position="bottom">
+                            <button
+                                onClick={() => setHeaderOpen(false)}
+                                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
+                            >
+                                <ChevronUp size={20} />
+                            </button>
+                        </Tooltip>
                     </div>
                 </header>
             )}
@@ -1042,28 +1166,30 @@ export const CanvasPage = () => {
                 </button>
             )}
 
-            {/* Main Content Area (Flex Pillars) */}
+            {/* Main Content Area */}
             <div style={{
                 display: 'flex',
                 flex: 1,
                 overflow: 'hidden',
-                position: 'relative'
+                position: 'relative',
+                marginTop: headerOpen ? '60px' : 0
             }}>
                 {/* Left Sidebar */}
                 <aside
                     className="glass-panel"
                     style={{
-                        width: leftPanelOpen ? `${leftWidth}px` : 0,
-                        opacity: leftPanelOpen ? 1 : 0,
-                        visibility: leftPanelOpen ? 'visible' : 'hidden',
+                        position: 'fixed',
+                        top: headerOpen ? '60px' : 0,
+                        left: leftPanelOpen ? 0 : `-${leftWidth}px`,
+                        bottom: 0,
+                        width: `${leftWidth}px`,
                         flexShrink: 0,
                         borderRight: leftPanelOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
                         display: 'flex',
                         flexDirection: 'column',
-                        transition: isResizingLeft ? 'none' : 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                        transition: isResizingLeft ? 'none' : 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                         overflow: 'hidden',
-                        zIndex: 1500,
-                        position: 'relative'
+                        zIndex: 1500
                     }}
                 >
                     {/* Resize Handle Left */}
@@ -1093,26 +1219,29 @@ export const CanvasPage = () => {
                             {/* Static Canvas Entry (Now Collapsible) */}
                             <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
                                 <div
-                                    onClick={() => setSelectedElementId('canvas')}
+                                    onClick={() => {
+                                        setSelectedElementId('canvas');
+                                        setSelectedElementIds(['canvas']);
+                                    }}
                                     style={{
                                         padding: '0.375rem 0.5rem',
                                         borderRadius: '0.375rem',
                                         cursor: 'pointer',
-                                        background: selectedElementId === 'canvas' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                                        border: `1px solid ${selectedElementId === 'canvas' ? 'rgba(99, 102, 241, 0.4)' : 'transparent'}`,
+                                        background: selectedElementIds.includes('canvas') ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
+                                        border: `1px solid ${selectedElementIds.includes('canvas') ? 'rgba(99, 102, 241, 0.4)' : 'transparent'}`,
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '8px',
-                                        color: selectedElementId === 'canvas' ? 'white' : 'var(--text-muted)',
+                                        color: selectedElementIds.includes('canvas') ? 'white' : 'var(--text-muted)',
                                         transition: 'all 0.15s ease',
                                         fontSize: '0.8125rem',
                                         userSelect: 'none'
                                     }}
                                     onMouseEnter={(e) => {
-                                        if (selectedElementId !== 'canvas') e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                                        if (!selectedElementIds.includes('canvas')) e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
                                     }}
                                     onMouseLeave={(e) => {
-                                        if (selectedElementId !== 'canvas') e.currentTarget.style.background = 'transparent';
+                                        if (!selectedElementIds.includes('canvas')) e.currentTarget.style.background = 'transparent';
                                     }}
                                 >
                                     <div
@@ -1130,14 +1259,14 @@ export const CanvasPage = () => {
                                             transition: 'transform 0.2s',
                                             cursor: 'pointer',
                                             marginLeft: '-4px',
-                                            color: selectedElementId === 'canvas' ? 'white' : 'rgba(255,255,255,0.4)'
+                                            color: selectedElementIds.includes('canvas') ? 'white' : 'rgba(255,255,255,0.4)'
                                         }}
                                     >
                                         <ChevronRight size={14} />
                                     </div>
-                                    <Layout size={14} style={{ opacity: selectedElementId === 'canvas' ? 1 : 0.7 }} />
+                                    <Layout size={14} style={{ opacity: selectedElementIds.includes('canvas') ? 1 : 0.7 }} />
                                     <span style={{
-                                        fontWeight: selectedElementId === 'canvas' ? '600' : '400',
+                                        fontWeight: selectedElementIds.includes('canvas') ? '600' : '400',
                                         fontSize: '0.75rem'
                                     }}>
                                         Canvas (Root)
@@ -1152,9 +1281,10 @@ export const CanvasPage = () => {
                                                 key={item.id}
                                                 item={item}
                                                 depth={1}
-                                                selectedId={selectedElementId}
+                                                selectedIds={selectedElementIds}
                                                 onSelect={(id) => {
                                                     setSelectedElementId(id);
+                                                    setSelectedElementIds([id]);
                                                     const el = canvasRef.current.querySelector(`[data-id="${id}"]`);
                                                     if (el) {
                                                         const all = canvasRef.current.querySelectorAll('.canvas-element');
@@ -1174,10 +1304,13 @@ export const CanvasPage = () => {
                     </div>
                 </aside>
 
-                {/* Main Workspace Area */}
+                {/* Main Workspace Area (Aware of Sidebars) */}
                 <main style={{
                     flex: 1,
                     position: 'relative',
+                    marginLeft: leftPanelOpen ? `${leftWidth}px` : 0,
+                    marginRight: rightPanelOpen ? `${rightWidth}px` : 0,
+                    transition: (isResizingLeft || isResizingRight) ? 'none' : 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1252,127 +1385,138 @@ export const CanvasPage = () => {
                     }}>
                         <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', padding: '0.25rem', borderRadius: '0.75rem', gap: '0.25rem', border: '1px solid rgba(255,255,255,0.1)' }}>
                             {/* Selection Mode Toggle */}
-                            <button
-                                onClick={() => {
-                                    setIsSelectionMode(!isSelectionMode);
-                                    if (isSelectionMode) setSelectedElementId(null);
-                                }}
-                                style={{
-                                    background: isSelectionMode ? accentColor : 'transparent',
-                                    color: isSelectionMode ? 'white' : 'var(--text-muted)',
-                                    border: 'none',
-                                    width: '36px',
-                                    height: '36px',
-                                    borderRadius: '0.5rem',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'all 0.3s'
-                                }}
-                                title="Selection Mode (V)"
-                            >
-                                <MousePointer2 size={18} />
-                            </button>
+                            <Tooltip content="Selection Mode (V)">
+                                <button
+                                    onClick={() => {
+                                        setIsSelectionMode(!isSelectionMode);
+                                        if (isSelectionMode) setSelectedElementId(null);
+                                    }}
+                                    style={{
+                                        background: isSelectionMode ? accentColor : 'transparent',
+                                        color: isSelectionMode ? 'white' : 'var(--text-muted)',
+                                        border: 'none',
+                                        width: '36px',
+                                        height: '36px',
+                                        borderRadius: '0.5rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.3s'
+                                    }}
+                                >
+                                    <MousePointer2 size={18} />
+                                </button>
+                            </Tooltip>
 
-                            <button
-                                onClick={shortcutActions.addElement}
-                                style={{
-                                    background: 'transparent',
-                                    color: 'var(--text-muted)',
-                                    border: 'none',
-                                    width: '36px',
-                                    height: '36px',
-                                    borderRadius: '0.5rem',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'all 0.3s'
-                                }}
-                                title="Add Element (A)"
-                                onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
-                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-                            >
-                                <Plus size={18} />
-                            </button>
+                            <Tooltip content="Add Element (A)">
+                                <button
+                                    onClick={shortcutActions.addElement}
+                                    style={{
+                                        background: 'transparent',
+                                        color: 'var(--text-muted)',
+                                        border: 'none',
+                                        width: '36px',
+                                        height: '36px',
+                                        borderRadius: '0.5rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.3s'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                                >
+                                    <Plus size={18} />
+                                </button>
+                            </Tooltip>
 
                             <div style={{ width: '1px', height: '16px', background: 'var(--border)', margin: '0 4px' }} />
 
-                            <button onClick={() => setZoom(prev => Math.max(prev - 0.1, 0.5))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }} title="Zoom Out (Ctrl -)">
-                                <ZoomOut size={18} />
-                            </button>
+                            <Tooltip content="Zoom Out (Ctrl -)">
+                                <button onClick={() => setZoom(prev => Math.max(prev - 0.1, 0.5))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}>
+                                    <ZoomOut size={18} />
+                                </button>
+                            </Tooltip>
                             <span style={{ fontSize: '0.75rem', width: '40px', textAlign: 'center', color: 'var(--text-main)' }}>{Math.round(zoom * 100)}%</span>
-                            <button onClick={() => setZoom(prev => Math.min(prev + 0.1, 2))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }} title="Zoom In (Ctrl +)">
-                                <ZoomIn size={18} />
-                            </button>
+                            <Tooltip content="Zoom In (Ctrl +)">
+                                <button onClick={() => setZoom(prev => Math.min(prev + 0.1, 2))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}>
+                                    <ZoomIn size={18} />
+                                </button>
+                            </Tooltip>
                             <div style={{ height: '24px', width: '1px', background: 'var(--border)' }} />
-                            <button onClick={() => setZoom(1)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }} title="Reset Zoom (Ctrl 0)">
-                                <RotateCcw size={18} />
-                            </button>
+                            <Tooltip content="Reset Zoom (Ctrl 0)">
+                                <button onClick={() => setZoom(1)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}>
+                                    <RotateCcw size={18} />
+                                </button>
+                            </Tooltip>
                         </div>
 
-                        <button
-                            onClick={shortcutActions.toggleFullScreen}
-                            className="glass-panel"
-                            style={{
-                                width: '40px',
-                                height: '40px',
-                                borderRadius: '0.75rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: !(leftPanelOpen || rightPanelOpen || headerOpen) ? accentColor : 'var(--text-muted)',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s',
-                                border: '1px solid rgba(255,255,255,0.1)'
-                            }}
-                            title="Toggle Full UI (Ctrl /)"
-                        >
-                            {!(leftPanelOpen || rightPanelOpen || headerOpen) ? (
-                                <Minimize size={18} />
-                            ) : (
-                                <Maximize size={18} />
-                            )}
-                        </button>
+                        <Tooltip content="Toggle Full UI (Ctrl /)">
+                            <button
+                                onClick={shortcutActions.toggleFullScreen}
+                                className="glass-panel"
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '0.75rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: !(leftPanelOpen || rightPanelOpen || headerOpen) ? accentColor : 'var(--text-muted)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s',
+                                    border: '1px solid rgba(255,255,255,0.1)'
+                                }}
+                            >
+                                {!(leftPanelOpen || rightPanelOpen || headerOpen) ? (
+                                    <Minimize size={18} />
+                                ) : (
+                                    <Maximize size={18} />
+                                )}
+                            </button>
+                        </Tooltip>
 
-                        <button
-                            onClick={() => setShowGrid(!showGrid)}
-                            className="glass-panel"
-                            style={{
-                                width: '40px',
-                                height: '40px',
-                                borderRadius: '0.75rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: showGrid ? accentColor : 'var(--text-muted)',
-                                cursor: 'pointer',
-                                border: '1px solid rgba(255,255,255,0.1)'
-                            }}
-                            title="Toggle Grid (Shift G)"
-                        >
-                            <Grid3X3 size={18} />
-                        </button>
+                        <Tooltip content="Toggle Grid (Shift G)">
+                            <button
+                                onClick={() => setShowGrid(!showGrid)}
+                                className="glass-panel"
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '0.75rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: showGrid ? accentColor : 'var(--text-muted)',
+                                    cursor: 'pointer',
+                                    border: '1px solid rgba(255,255,255,0.1)'
+                                }}
+                            >
+                                <Grid3X3 size={18} />
+                            </button>
+                        </Tooltip>
 
-                        <button
-                            onClick={() => setShowRulers(!showRulers)}
-                            className="glass-panel"
-                            style={{
-                                width: '40px',
-                                height: '40px',
-                                borderRadius: '0.75rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: showRulers ? accentColor : 'var(--text-muted)',
-                                cursor: 'pointer',
-                                border: '1px solid rgba(255,255,255,0.1)'
-                            }}
-                            title="Toggle Rulers (Shift R)"
-                        >
-                            <Ruler size={18} />
-                        </button>
+                        <Tooltip content="Toggle Rulers (Shift R)">
+                            <button
+                                onClick={() => setShowRulers(!showRulers)}
+                                className="glass-panel"
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '0.75rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: showRulers ? accentColor : 'var(--text-muted)',
+                                    cursor: 'pointer',
+                                    border: '1px solid rgba(255,255,255,0.1)'
+                                }}
+                            >
+                                <Ruler size={18} />
+                            </button>
+                        </Tooltip>
                     </div>
                 </main>
 
@@ -1380,17 +1524,18 @@ export const CanvasPage = () => {
                 <aside
                     className="glass-panel"
                     style={{
-                        width: rightPanelOpen ? `${rightWidth}px` : 0,
-                        opacity: rightPanelOpen ? 1 : 0,
-                        visibility: rightPanelOpen ? 'visible' : 'hidden',
+                        position: 'fixed',
+                        top: headerOpen ? '60px' : 0,
+                        right: rightPanelOpen ? 0 : `-${rightWidth}px`,
+                        bottom: 0,
+                        width: `${rightWidth}px`,
                         flexShrink: 0,
                         borderLeft: rightPanelOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
-                        transition: isResizingRight ? 'none' : 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                        transition: isResizingRight ? 'none' : 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                         overflow: 'hidden',
                         zIndex: 1500,
                         display: 'flex',
-                        flexDirection: 'column',
-                        position: 'relative'
+                        flexDirection: 'column'
                     }}
                 >
                     {/* Resize Handle Right */}
@@ -1411,7 +1556,9 @@ export const CanvasPage = () => {
                     />
                     <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontWeight: '600', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>Inspector</span>
+                            <span style={{ fontWeight: '600', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                                {selectedElementIds.length > 1 ? `Inspector (${selectedElementIds.length} items)` : 'Inspector'}
+                            </span>
                             <Settings size={18} color={accentColor} />
                         </div>
                     </div>
@@ -1547,9 +1694,14 @@ export const CanvasPage = () => {
                     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                     position: relative;
                 }
-                .element-hovered {
-                    background-color: ${accentColor}33 !important;
-                    box-shadow: inset 0 0 0 4px ${accentColor}66 !important;
+                .element-hovered::after {
+                    content: '' !important;
+                    position: absolute !important;
+                    inset: 0 !important;
+                    background-color: ${accentColor} !important;
+                    opacity: 0.15 !important;
+                    pointer-events: none !important;
+                    z-index: 50 !important;
                 }
                 .element-selected {
                     box-shadow: inset 0 0 0 4px ${accentColor} !important;
@@ -1565,6 +1717,44 @@ export const CanvasPage = () => {
                     onClose={() => setNotification(null)}
                 />
             )}
+
+            <FloatingToolbox
+                selectedElementId={selectedElementIds.length === 1 ? selectedElementIds[0] : null}
+                canvasRef={canvasRef}
+                actions={{
+                    delete: shortcutActions.deleteElement,
+                    duplicate: shortcutActions.duplicateElement,
+                    rename: shortcutActions.renameElement
+                }}
+                accentColor={accentColor}
+            />
+
+            {/* Prompt Modals */}
+            <PromptModal
+                key={renameTargetId || 'rename'}
+                isOpen={isRenameModalOpen}
+                onClose={() => {
+                    setIsRenameModalOpen(false);
+                    setRenameTargetId(null);
+                }}
+                title="Rename Layer"
+                label="New Name"
+                defaultValue={renameDefaultValue}
+                placeholder="Enter layer name..."
+                onSubmit={(newName) => {
+                    if (newName && renameTargetId) {
+                        pushHistory(canvasRef.current.innerHTML);
+                        const el = canvasRef.current.querySelector(`[data-id="${renameTargetId}"]`);
+                        if (el) {
+                            el.setAttribute('data-label', newName);
+                            prepareCanvasElements(canvasRef.current);
+                            setElementTree(generateTree(canvasRef.current));
+                            setNotification('Element renamed');
+                            handleSave();
+                        }
+                    }
+                }}
+            />
         </div>
     );
 };
