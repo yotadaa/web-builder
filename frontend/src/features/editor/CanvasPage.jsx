@@ -98,7 +98,6 @@ export const CanvasPage = () => {
                 const elements = canvasRef.current.querySelectorAll('.canvas-element');
                 elements.forEach(el => {
                     el.classList.remove('element-hovered', 'element-selected');
-                    el.style.boxShadow = 'none';
                 });
             }
             return;
@@ -108,15 +107,15 @@ export const CanvasPage = () => {
             e.stopPropagation();
             const target = e.target.closest('.canvas-element');
             if (target && target.getAttribute('data-id') !== selectedElementId) {
-                target.style.boxShadow = `inset 0 0 0 2px ${accentColor}88`; // Semi-transparent accent
+                target.classList.add('element-hovered');
                 target.style.cursor = 'pointer';
             }
         };
 
         const handleMouseOut = (e) => {
             const target = e.target.closest('.canvas-element');
-            if (target && target.getAttribute('data-id') !== selectedElementId) {
-                target.style.boxShadow = 'none';
+            if (target) {
+                target.classList.remove('element-hovered');
             }
         };
 
@@ -132,8 +131,8 @@ export const CanvasPage = () => {
 
             // Clear previous and set new selected
             const allElements = canvasRef.current.querySelectorAll('.canvas-element');
-            allElements.forEach(el => el.style.boxShadow = 'none');
-            target.style.boxShadow = `inset 0 0 0 2px ${accentColor}`;
+            allElements.forEach(el => el.classList.remove('element-selected'));
+            target.classList.add('element-selected');
         };
 
         const canvas = canvasRef.current;
@@ -161,20 +160,21 @@ export const CanvasPage = () => {
             overflow: 'hidden'
         }}>
             {/* Editor Toolbar */}
-            <header style={{
-                height: headerOpen ? '60px' : '0px',
-                background: 'var(--glass)',
-                borderBottom: headerOpen ? '1px solid var(--border)' : 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: headerOpen ? '0 1.5rem' : '0',
-                backdropFilter: 'blur(10px)',
-                zIndex: 100,
-                transition: 'all 0.3s ease-in-out',
-                overflow: 'hidden',
-                position: 'relative'
-            }}>
+            <header
+                className="glass-panel"
+                style={{
+                    height: headerOpen ? '60px' : '0px',
+                    borderBottom: headerOpen ? '1px solid var(--border)' : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: headerOpen ? '0 1.5rem' : '0',
+                    zIndex: 100,
+                    transition: 'all 0.3s ease-in-out',
+                    overflow: 'hidden',
+                    position: 'relative'
+                }}
+            >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                         <ChevronLeft size={20} />
@@ -223,23 +223,26 @@ export const CanvasPage = () => {
                 </div>
             </header>
 
-            {/* Toggle Header Button */}
+            {/* Toggle Header Button (Zen Mode) */}
             <button
                 onClick={() => setHeaderOpen(!headerOpen)}
+                className="glass-panel"
                 style={{
                     position: 'absolute',
                     top: headerOpen ? '60px' : '0',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    background: 'var(--glass)',
-                    border: '1px solid var(--border)',
                     borderTop: 'none',
-                    borderRadius: '0 0 0.5rem 0.5rem',
+                    borderRadius: '0 0 0.75rem 0.75rem',
                     color: 'var(--text-muted)',
                     cursor: 'pointer',
-                    padding: '0.25rem 1rem',
+                    padding: '0.25rem 1.25rem',
                     zIndex: 110,
-                    transition: 'all 0.3s ease-in-out'
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
                 }}
             >
                 {headerOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -251,18 +254,19 @@ export const CanvasPage = () => {
                 {!leftPanelOpen && (
                     <button
                         onClick={() => setLeftPanelOpen(true)}
+                        className="glass-panel"
                         style={{
                             position: 'absolute',
-                            left: '0.5rem',
+                            left: '0.75rem',
                             top: '50%',
                             transform: 'translateY(-50%)',
-                            background: 'var(--glass)',
-                            border: '1px solid var(--border)',
                             borderRadius: '0.5rem',
                             color: 'var(--text-muted)',
                             cursor: 'pointer',
-                            padding: '0.5rem',
-                            zIndex: 90
+                            padding: '0.75rem',
+                            zIndex: 90,
+                            boxShadow: '4px 0 15px rgba(0,0,0,0.2)',
+                            transition: 'all 0.2s'
                         }}
                     >
                         <PanelLeftOpen size={18} />
@@ -270,16 +274,18 @@ export const CanvasPage = () => {
                 )}
 
                 {/* Left Sidebar (Element Tree) */}
-                <aside style={{
-                    width: leftPanelOpen ? '280px' : '0px',
-                    borderRight: leftPanelOpen ? '1px solid var(--border)' : 'none',
-                    background: 'var(--glass)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'all 0.3s ease-in-out',
-                    overflow: 'hidden',
-                    position: 'relative'
-                }}>
+                <aside
+                    className="glass-panel"
+                    style={{
+                        width: leftPanelOpen ? '280px' : '0px',
+                        borderRight: leftPanelOpen ? '1px solid var(--border)' : 'none',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        transition: 'all 0.3s ease-in-out',
+                        overflow: 'hidden',
+                        position: 'relative'
+                    }}
+                >
                     <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Layers size={18} color={accentColor} />
@@ -327,18 +333,19 @@ export const CanvasPage = () => {
                 {!rightPanelOpen && (
                     <button
                         onClick={() => setRightPanelOpen(true)}
+                        className="glass-panel"
                         style={{
                             position: 'absolute',
-                            right: '0.5rem',
+                            right: '0.75rem',
                             top: '50%',
                             transform: 'translateY(-50%)',
-                            background: 'var(--glass)',
-                            border: '1px solid var(--border)',
                             borderRadius: '0.5rem',
                             color: 'var(--text-muted)',
                             cursor: 'pointer',
-                            padding: '0.5rem',
-                            zIndex: 90
+                            padding: '0.75rem',
+                            zIndex: 90,
+                            boxShadow: '-4px 0 15px rgba(0,0,0,0.2)',
+                            transition: 'all 0.2s'
                         }}
                     >
                         <PanelRightOpen size={18} />
@@ -346,14 +353,16 @@ export const CanvasPage = () => {
                 )}
 
                 {/* Right Sidebar (Inspector) */}
-                <aside style={{
-                    width: rightPanelOpen ? '320px' : '0px',
-                    borderLeft: rightPanelOpen ? '1px solid var(--border)' : 'none',
-                    background: 'var(--glass)',
-                    transition: 'all 0.3s ease-in-out',
-                    overflow: 'hidden',
-                    position: 'relative'
-                }}>
+                <aside
+                    className="glass-panel"
+                    style={{
+                        width: rightPanelOpen ? '320px' : '0px',
+                        borderLeft: rightPanelOpen ? '1px solid var(--border)' : 'none',
+                        transition: 'all 0.3s ease-in-out',
+                        overflow: 'hidden',
+                        position: 'relative'
+                    }}
+                >
                     <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <button onClick={() => setRightPanelOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                             <PanelRightClose size={18} />
@@ -384,7 +393,17 @@ export const CanvasPage = () => {
 
             <style>{`
                 .canvas-element {
-                    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                }
+                .element-hovered {
+                    background-color: ${accentColor}11 !important;
+                    box-shadow: inset 0 0 0 2px ${accentColor}44 !important;
+                }
+                .element-selected {
+                    box-shadow: inset 0 0 0 2px ${accentColor} !important;
+                    outline: 2px solid ${accentColor} !important;
+                    outline-offset: -2px;
                 }
             `}</style>
         </div>
