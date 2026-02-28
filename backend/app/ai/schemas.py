@@ -17,5 +17,6 @@ class SparkContext(BaseModel):
 
 
 class SparkRequest(BaseModel):
+    model: str = "gpt-4o-mini"
     prompt: str
     context: SparkContext

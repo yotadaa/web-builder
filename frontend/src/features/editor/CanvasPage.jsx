@@ -471,20 +471,31 @@ export const CanvasPage = () => {
 
     const handleOpenSpark = (elementId) => {
         if (!canvasRef.current || !elementId) return;
-        const el = canvasRef.current.querySelector(`[data-id="${elementId}"]`);
+
+        let el;
+        if (elementId === 'canvas') {
+            el = canvasRef.current;
+        } else {
+            el = canvasRef.current.querySelector(`[data-id="${elementId}"]`);
+        }
+
         if (!el) return;
 
         const gCss = canvasRef.current.querySelector('style#global-project-styles')?.innerHTML || '';
         const gJs = canvasRef.current.querySelector('script#global-project-scripts')?.innerHTML || '';
+
+        // If it's the canvas, we want to provide the HTML but optimally exclude the global style/script tags to prevent AI confusion.
+        // We'll pass the full innerHTML, the AI usually knows to keep or ignore them, but let's be safe.
+        let htmlContent = el.innerHTML;
 
         setSparkContext({
             global_css: gCss,
             global_js: gJs,
             element: {
                 element_id: elementId,
-                element_html: el.innerHTML,
-                element_css_classes: el.className,
-                element_inline_styles: el.getAttribute('style') || '',
+                element_html: htmlContent,
+                element_css_classes: el.className || '',
+                element_inline_styles: el.getAttribute ? (el.getAttribute('style') || '') : '',
                 element_js: '' // Simple editor might not have element-specific JS extracted easily yet
             }
         });
@@ -496,13 +507,39 @@ export const CanvasPage = () => {
 
         pushHistory(canvasRef.current.innerHTML);
 
-        const el = canvasRef.current.querySelector(`[data-id="${sparkContext.element.element_id}"]`);
+        let el;
+        if (sparkContext.element.element_id === 'canvas') {
+            el = canvasRef.current;
+        } else {
+            el = canvasRef.current.querySelector(`[data-id="${sparkContext.element.element_id}"]`);
+        }
+
         if (el) {
-            if (suggestion.html !== undefined) el.innerHTML = suggestion.html;
-            if (suggestion.css_classes !== undefined) el.className = suggestion.css_classes;
-            if (suggestion.inline_styles !== undefined && suggestion.inline_styles !== null) {
-                // If it's a string, we can just set attribute
-                if (typeof suggestion.inline_styles === 'string') {
+            if (suggestion.html !== undefined) {
+                if (sparkContext.element.element_id === 'canvas') {
+                    // Preserve global tags if applying to canvas
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = canvasRef.current.innerHTML;
+                    const oldStyle = tempDiv.querySelector('style#global-project-styles');
+                    const oldScript = tempDiv.querySelector('script#global-project-scripts');
+
+                    canvasRef.current.innerHTML = suggestion.html;
+
+                    if (oldStyle && !canvasRef.current.querySelector('style#global-project-styles')) {
+                        canvasRef.current.prepend(oldStyle);
+                    }
+                    if (oldScript && !canvasRef.current.querySelector('script#global-project-scripts')) {
+                        canvasRef.current.appendChild(oldScript);
+                    }
+                } else {
+                    el.innerHTML = suggestion.html;
+                }
+            }
+            if (suggestion.css_classes !== undefined && el !== canvasRef.current) {
+                el.className = suggestion.css_classes;
+            }
+            if (suggestion.inline_styles !== undefined && suggestion.inline_styles !== null && el !== canvasRef.current) {
+                if (typeof suggestion.inline_styles === 'string' && el.setAttribute) {
                     el.setAttribute('style', suggestion.inline_styles);
                 }
             }
@@ -1288,6 +1325,18 @@ export const CanvasPage = () => {
                                     onMouseLeave={e => e.currentTarget.style.color = '#f7df1e'}
                                 >
                                     <FileJson size={18} />
+                                </button>
+                            </Tooltip>
+                            <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 4px' }} />
+                            <Tooltip content="Canvas Spark" position="bottom">
+                                <button
+                                    onClick={() => handleOpenSpark('canvas')}
+                                    style={{ height: '36px', padding: '0 0.75rem', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(99, 102, 241, 0.2))', border: '1px solid rgba(168, 85, 247, 0.5)', borderRadius: '6px', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(99, 102, 241, 0.4))'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(99, 102, 241, 0.2))'}
+                                >
+                                    <Wand2 size={16} color="#a855f7" />
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Spark Page</span>
                                 </button>
                             </Tooltip>
                             <button

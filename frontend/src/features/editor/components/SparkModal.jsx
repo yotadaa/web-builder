@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, Wand2, Loader2, Check, ArrowRight } from 'lucide-react';
+import { X, Sparkles, Wand2, Loader2, Check, ArrowRight, ChevronDown } from 'lucide-react';
 import Editor from 'react-simple-code-editor';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
@@ -16,6 +16,38 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
     const [activeTab, setActiveTab] = useState('preview'); // preview, html, css, js
     const [error, setError] = useState('');
 
+    // Model Selection State
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [selectedModel, setSelectedModel] = useState('gemini-3.0-flash');
+
+    const MODELS = [
+        { id: 'gemini-3.0-flash', label: 'Gemini 3.0 Flash', group: 'Google Gemini' },
+        { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', group: 'Google Gemini' },
+        { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite', group: 'Google Gemini' },
+        { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', group: 'Google Gemini' },
+        { id: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite', group: 'Google Gemini' },
+        { id: 'gemini-2.5-flash-live', label: 'Gemini 2.5 Flash Live', group: 'Google Gemini' },
+        { id: 'gemini-2.5-flash-preview-native-audio-dialog', label: 'Gemini 2.5 Native Audio', group: 'Google Gemini' },
+        { id: 'gemini-2.5-flash-experimental-native-audio-thinking-dialog', label: 'Gemini 2.5 Thinking Audio', group: 'Google Gemini' },
+        { id: 'gemini-2.0-flash-live', label: 'Gemini 2.0 Flash Live', group: 'Google Gemini' },
+        { id: 'gemini-2.5-flash-preview-tts', label: 'Gemini 2.5 Preview TTS', group: 'Google Gemini' },
+        { id: 'gemini-2.0-flash-preview-image-generation', label: 'Gemini 2.0 Image Gen', group: 'Google Gemini' },
+        { id: 'gemini-embedding', label: 'Gemini Embedding', group: 'Google Gemini' },
+        { id: 'gemma-3', label: 'Gemma 3', group: 'Google Gemini' },
+        { id: 'gemma-3n', label: 'Gemma 3n', group: 'Google Gemini' },
+
+        { id: 'gpt-4o-mini', label: 'GPT-4o Mini', group: 'OpenAI / Other' },
+        { id: 'gpt-5.1-codex-mini', label: 'GPT-5.1 Codex Mini', group: 'OpenAI / Other' },
+        { id: 'gpt-5-mini', label: 'GPT-5 Mini', group: 'OpenAI / Other' },
+        { id: 'gpt-5-nano', label: 'GPT-5 Nano', group: 'OpenAI / Other' },
+        { id: 'gpt-4.1-mini', label: 'GPT-4.1 Mini', group: 'OpenAI / Other' },
+        { id: 'gpt-4.1-nano', label: 'GPT-4.1 Nano', group: 'OpenAI / Other' },
+        { id: 'o1-mini', label: 'O1 Mini', group: 'OpenAI / Other' },
+        { id: 'o3-mini', label: 'O3 Mini', group: 'OpenAI / Other' },
+        { id: 'o4-mini', label: 'O4 Mini', group: 'OpenAI / Other' },
+        { id: 'codex-mini-latest', label: 'Codex Mini Latest', group: 'OpenAI / Other' },
+    ];
+
     useEffect(() => {
         if (!isOpen) {
             setPrompt('');
@@ -24,6 +56,7 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
             setActiveTab('preview');
             setError('');
             setIsGenerating(false);
+            setIsDropdownOpen(false);
         }
     }, [isOpen]);
 
@@ -37,6 +70,7 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
         try {
             const response = await api.post('/ai/spark', {
                 prompt,
+                model: selectedModel,
                 context
             });
 
@@ -60,27 +94,35 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
         onClose();
     };
 
-    const renderPreview = (suggestion) => {
-        // Construct a safe preview sandbox or just render directly
-        // We will inline the styles and class attributes.
-        const previewHtml = suggestion.html;
-        return (
-            <div style={{ padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', background: '#fff', borderRadius: '8px' }}>
-                <style>{suggestion.global_css_additions}</style>
-                <div
-                    dangerouslySetInnerHTML={{ __html: previewHtml }}
-                    className={suggestion.css_classes}
-                    style={typeof suggestion.inline_styles === 'string' ? {} : suggestion.inline_styles} // We might need to map string to obj if react, but dangerouslySetInnerHTML is safer as just HTML for the element itself, wait we need to parse style string.
-                // simpler approach: inject CSS block inside the preview div.
-                />
-            </div>
-        );
-    };
-
     const activeData = suggestions[activeSuggestion];
 
     return (
         <div style={{ position: 'fixed', inset: 0, zIndex: 5000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)' }}>
+            <style>
+                {`
+                    @keyframes customSpin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                    .animate-custom-spin {
+                        animation: customSpin 1s linear infinite;
+                    }
+                    
+                    .custom-scrollbar::-webkit-scrollbar {
+                        width: 6px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-track {
+                        background: #1e1e1e;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-thumb {
+                        background: #444;
+                        border-radius: 4px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                        background: #666;
+                    }
+                `}
+            </style>
             <div style={{ width: '85vw', height: '85vh', maxWidth: '1200px', background: '#1e1e1e', borderRadius: '12px', border: '1px solid #333', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(90deg, #252526, #1e1e24)', padding: '0 1rem', height: '50px', borderBottom: '1px solid #333' }}>
@@ -109,6 +151,57 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
                             <div style={{ fontSize: '11px', color: '#666', marginTop: '6px', textAlign: 'right' }}>Press Ctrl+Enter to generate</div>
                         </div>
 
+                        <div style={{ position: 'relative' }}>
+                            <label style={{ fontSize: '12px', color: '#858585', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', display: 'block' }}>AI Model</label>
+                            <button
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                style={{
+                                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '10px 12px', background: '#1e1e1e', border: '1px solid #333', borderRadius: '6px',
+                                    color: '#eaeaea', fontSize: '13px', cursor: 'pointer', textAlign: 'left'
+                                }}
+                            >
+                                <span>{MODELS.find(m => m.id === selectedModel)?.label || selectedModel}</span>
+                                <ChevronDown size={14} style={{ opacity: 0.6 }} />
+                            </button>
+
+                            {isDropdownOpen && (
+                                <>
+                                    <div
+                                        style={{ position: 'fixed', inset: 0, zIndex: 100 }}
+                                        onClick={() => setIsDropdownOpen(false)}
+                                    />
+                                    <div style={{
+                                        position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+                                        background: '#252526', border: '1px solid #444', borderRadius: '6px',
+                                        maxHeight: '200px', overflowY: 'auto', zIndex: 101, boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+                                    }} className="custom-scrollbar">
+                                        {['Google Gemini', 'OpenAI / Other'].map(group => (
+                                            <div key={group}>
+                                                <div style={{ padding: '6px 12px', fontSize: '10px', color: '#858585', background: '#1e1e1e', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                                                    {group}
+                                                </div>
+                                                {MODELS.filter(m => m.group === group).map(m => (
+                                                    <div
+                                                        key={m.id}
+                                                        onClick={() => { setSelectedModel(m.id); setIsDropdownOpen(false); }}
+                                                        style={{
+                                                            padding: '8px 12px', fontSize: '13px', color: m.id === selectedModel ? '#a855f7' : '#eaeaea',
+                                                            cursor: 'pointer', background: m.id === selectedModel ? 'rgba(168,85,247,0.1)' : 'transparent',
+                                                        }}
+                                                        onMouseEnter={e => e.currentTarget.style.background = m.id === selectedModel ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.05)'}
+                                                        onMouseLeave={e => e.currentTarget.style.background = m.id === selectedModel ? 'rgba(168,85,247,0.1)' : 'transparent'}
+                                                    >
+                                                        {m.label}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
                         <button
                             onClick={handleGenerate}
                             disabled={isGenerating || !prompt.trim()}
@@ -119,7 +212,7 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
                                 cursor: isGenerating || !prompt.trim() ? 'not-allowed' : 'pointer', fontWeight: 'bold', transition: 'all 0.2s'
                             }}
                         >
-                            {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                            {isGenerating ? <Loader2 size={16} className="animate-custom-spin" /> : <Sparkles size={16} />}
                             {isGenerating ? 'Generating...' : Object.keys(suggestions).length > 0 ? 'Regenerate' : 'Generate Suggestions'}
                         </button>
 

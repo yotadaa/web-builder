@@ -56,6 +56,13 @@
         - [x] Add `POST /api/ai/spark` endpoint in backend
         - [x] Build `SparkModal.jsx` for prompt input and 3-variant preview
         - [x] Wire `SparkModal` to `CanvasPage.jsx` payload and handle apply logic
+
+    - [x] AI Spark Feature Enhancements
+        - [x] Fix `Loader2` spinning animation in SparkModal
+        - [x] Add custom framework dropdown in SparkModal for model selection
+        - [x] Backend: Support `google-generativeai` package
+        - [x] Backend: Implement LLM routing based on model payload
+        - [x] Backend: Implement 429 fallback loop across 6 Gemini API keys
     - [x] Workspace Layout Refactoring <!-- id: 29 -->
         - [x] **Fixed Panels**: Sidebar and Header now use a robust fixed positioning system relative to the viewport.
         - [x] **Floating Navigation Tools**: Centralized toggles for sidebars and selection mode into a right-aligned floating group.
