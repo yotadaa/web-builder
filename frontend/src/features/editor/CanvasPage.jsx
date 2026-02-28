@@ -4,6 +4,7 @@ import { MousePointer2, Plus, ZoomOut, ZoomIn, RotateCcw, Minimize, Maximize, Gr
 import PromptModal from './components/PromptModal';
 import DetailedConfigModal from './components/DetailedConfigModal';
 import GlobalCssModal from './components/GlobalCssModal';
+import GlobalJsModal from './components/GlobalJsModal';
 import api from '../../shared/api/client';
 import { useTheme } from '../../shared/context/ThemeContext';
 import Notification from '../../components/ui/Notification';
@@ -205,6 +206,8 @@ export const CanvasPage = () => {
     const [isDetailedConfigOpen, setIsDetailedConfigOpen] = useState(false);
     const [isGlobalCssModalOpen, setIsGlobalCssModalOpen] = useState(false);
     const [globalCss, setGlobalCss] = useState('');
+    const [isGlobalJsModalOpen, setIsGlobalJsModalOpen] = useState(false);
+    const [globalJs, setGlobalJs] = useState('');
 
     const [notification, setNotification] = useState(null);
     const [clipboardData, setClipboardData] = useState(null);
@@ -425,6 +428,35 @@ export const CanvasPage = () => {
 
         setGlobalCss(cssText);
         setNotification('Global CSS applied');
+        handleSave();
+    };
+
+    const handleOpenGlobalJs = () => {
+        if (!canvasRef.current) return;
+        const scriptEl = canvasRef.current.querySelector('script#global-project-scripts');
+        setGlobalJs(scriptEl ? scriptEl.innerHTML : '');
+        setIsGlobalJsModalOpen(true);
+    };
+
+    const handleSaveGlobalJs = (jsText) => {
+        if (!canvasRef.current) return;
+        pushHistory(canvasRef.current.innerHTML);
+        let scriptEl = canvasRef.current.querySelector('script#global-project-scripts');
+
+        if (!jsText.trim()) {
+            if (scriptEl) scriptEl.remove();
+        } else {
+            if (!scriptEl) {
+                scriptEl = document.createElement('script');
+                scriptEl.id = 'global-project-scripts';
+                scriptEl.type = 'text/javascript';
+                canvasRef.current.appendChild(scriptEl); // Add to end, unlike CSS prepend
+            }
+            scriptEl.innerHTML = jsText;
+        }
+
+        setGlobalJs(jsText);
+        setNotification('Global JS applied');
         handleSave();
     };
 
@@ -1181,6 +1213,16 @@ export const CanvasPage = () => {
                                     <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '16px' }}>{`{ }`}</span>
                                 </button>
                             </Tooltip>
+                            <Tooltip content="Global JS" position="bottom">
+                                <button
+                                    onClick={handleOpenGlobalJs}
+                                    style={{ height: '36px', width: '36px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#f7df1e', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+                                    onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                                    onMouseLeave={e => e.currentTarget.style.color = '#f7df1e'}
+                                >
+                                    <FileJson size={18} />
+                                </button>
+                            </Tooltip>
                             <button
                                 onClick={handleSave}
                                 className="premium-button"
@@ -1875,6 +1917,14 @@ export const CanvasPage = () => {
                 initialCss={globalCss}
                 onSave={handleSaveGlobalCss}
                 accentColor={accentColor}
+            />
+
+            <GlobalJsModal
+                isOpen={isGlobalJsModalOpen}
+                onClose={() => setIsGlobalJsModalOpen(false)}
+                initialJs={globalJs}
+                onSave={handleSaveGlobalJs}
+                accentColor="#f7df1e"
             />
         </div>
     );
