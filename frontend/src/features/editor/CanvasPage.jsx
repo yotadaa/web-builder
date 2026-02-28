@@ -219,12 +219,12 @@ export const CanvasPage = () => {
             });
     };
 
-    const stringifyProperties = (props) => {
+    const stringifyProperties = useCallback((props) => {
         return props
             .filter(p => p.prop.trim() && p.value.trim())
             .map(p => `${p.prop.trim()}: ${p.value.trim()}`)
             .join('; ');
-    };
+    }, []);
 
     const handleUpdateCssProp = (index, field, value) => {
         setCssProperties(prev => {
@@ -263,45 +263,24 @@ export const CanvasPage = () => {
         });
     }, []);
 
-    const prepareCanvasElements = useCallback((node) => {
-        if (!node) return;
-
-        const walk = (curr) => {
-            // STEP 1: Wrap ALL non-empty text nodes that aren't already in a text-wrapper
-            // and aren't in elements that should handle text themselves (like BUTTON or INPUT)
-            // Actually, even in a BUTTON, having a selectable text layer is fine for some users.
-            // But let's avoid wrapping if it's already a single child of a common text tag.
-
-            const isTextWrapper = curr.classList.contains('text-wrapper');
-            if (!isTextWrapper) {
-                Array.from(curr.childNodes).forEach(child => {
-                    // nodeType 3 is Text
-                    if (child.nodeType === 3 && child.textContent.trim().length > 0) {
-                        const span = document.createElement('span');
-                        span.className = 'canvas-element text-wrapper';
-                        span.textContent = child.textContent;
-                        curr.replaceChild(span, child);
-                    }
-                });
+    const prepareCanvasElements = useCallback((container) => {
+        if (!container) return;
+        const elements = container.querySelectorAll('.canvas-element');
+        elements.forEach(el => {
+            if (!el.getAttribute('data-id')) {
+                const random = Math.random().toString(36).substring(2, 9);
+                el.setAttribute('data-id', `el-${Date.now()}-${random}`);
             }
 
-            // STEP 2: Tag all actual elements and Recurse
-            Array.from(curr.children).forEach(el => {
-                if (el.id === 'canvas-ruler-container') return;
-
-                if (!el.classList.contains('canvas-element')) {
-                    el.classList.add('canvas-element');
-                }
-
-                if (!el.getAttribute('data-id')) {
-                    const random = Math.random().toString(36).substring(2, 9);
-                    el.setAttribute('data-id', `el-${Date.now()}-${random}`);
-                }
-
-                walk(el);
-            });
-        };
-        walk(node);
+            // Text Editing Support
+            if (el.tagName === 'P' || el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'SPAN') {
+                el.contentEditable = 'true';
+                el.onInput = () => {
+                    const newHtml = canvasRef.current.innerHTML;
+                    setCanvasHtml(newHtml);
+                };
+            }
+        });
     }, []);
 
     const generateTree = useCallback((node) => {
@@ -355,7 +334,7 @@ export const CanvasPage = () => {
             });
     }, []);
 
-    const handleApplyEdits = () => {
+    const handleApplyEdits = useCallback(() => {
         if (selectedElementId && canvasRef.current) {
             if (selectedElementId === 'canvas') {
                 canvasRef.current.innerHTML = editHtml;
