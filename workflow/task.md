@@ -32,13 +32,14 @@
     - [x] Toggle Selection Mode in Editor
     - [x] Visual Hover/Click Highlighting for elements
     - [x] Selected Element state management
-- [/] 2.3 Editor UI Enhancements <!-- id: 25 -->
+- [x] 2.3 Editor UI Enhancements <!-- id: 25 -->
     - [x] Theme Configuration System (Accent Colors)
     - [x] Collapsible Sidebars & Header (Workspace management)
     - [x] Premium UI Refinements <!-- id: 28 -->
-        - [x] Glassmorphism Effects (Blur & Transparency)
-        - [x] Hover Selection Overlay (Accent Low Opacity)
-        - [x] Solid Selection Border (Accent Color)
+    - [x] Workspace Layout Refactoring <!-- id: 29 -->
+        - [x] Fixed positioning for sidebars and header
+        - [x] Floating Navigation Tools (Right-aligned)
+        - [x] Contextual Header toggle logic
 - [/] 2.4 Element Tree System <!-- id: 26 -->
     - [ ] Initial Element Tree representation
     - [ ] Visual Element Tree sidebar
