@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Code, Layers, FileJson, Check } from 'lucide-react';
+import { X, Code, Layers, FileJson, Check, Wand2 } from 'lucide-react';
 import Editor from 'react-simple-code-editor';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
@@ -109,13 +109,20 @@ const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialS
                     <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', display: 'flex' }}><X size={16} /></button>
                 </div>
                 {/* Tabs Area */}
-                <div style={{ display: 'flex', background: '#2d2d2d', height: '35px' }}>
-                    {tabs.map(tab => (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 1rem', background: activeTab === tab.id ? '#1e1e1e' : 'transparent', border: 'none', borderTop: `2px solid ${activeTab === tab.id ? accentColor : 'transparent'}`, color: activeTab === tab.id ? '#fff' : '#969696', cursor: 'pointer', fontFamily: 'monospace', fontSize: '13px' }}>
-                            <tab.icon size={14} color={tab.color} />
-                            {tab.label}
+                <div style={{ display: 'flex', background: '#2d2d2d', height: '35px', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex' }}>
+                        {tabs.map(tab => (
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 1rem', background: activeTab === tab.id ? '#1e1e1e' : 'transparent', border: 'none', borderTop: `2px solid ${activeTab === tab.id ? accentColor : 'transparent'}`, color: activeTab === tab.id ? '#fff' : '#969696', cursor: 'pointer', fontFamily: 'monospace', fontSize: '13px' }}>
+                                <tab.icon size={14} color={tab.color} />
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', paddingRight: '0.5rem' }}>
+                        <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #a855f7, #6366f1)', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                            <Wand2 size={12} /> AI Spark
                         </button>
-                    ))}
+                    </div>
                 </div>
                 {/* Editor Area */}
                 <div style={{ flex: 1, position: 'relative', display: 'flex', minHeight: 0 }}>

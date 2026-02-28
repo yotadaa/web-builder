@@ -1480,6 +1480,28 @@ export const CanvasPage = () => {
                                 </button>
                             </Tooltip>
 
+                            {selectedElementId && selectedElementId !== 'canvas' && (
+                                <Tooltip content="AI Spark">
+                                    <button
+                                        style={{
+                                            background: 'linear-gradient(135deg, #a855f7, #6366f1)',
+                                            color: '#fff',
+                                            border: 'none',
+                                            width: '36px',
+                                            height: '36px',
+                                            borderRadius: '0.5rem',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            transition: 'all 0.3s'
+                                        }}
+                                    >
+                                        <Wand2 size={18} />
+                                    </button>
+                                </Tooltip>
+                            )}
+
                             <Tooltip content="Add Element (A)">
                                 <button
                                     onClick={shortcutActions.addElement}
