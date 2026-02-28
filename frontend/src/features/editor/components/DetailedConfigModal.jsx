@@ -37,7 +37,8 @@ const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialS
         fontFamily: 'monospace',
         fontSize: '14px',
         lineHeight: '1.5',
-        whiteSpace: 'pre'
+        whiteSpace: 'pre',
+        overflowY: 'auto'
     };
 
     const getEditorContent = () => {
@@ -83,7 +84,7 @@ const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialS
                     ))}
                 </div>
                 {/* Editor Area */}
-                <div style={{ flex: 1, position: 'relative', display: 'flex' }}>
+                <div style={{ flex: 1, position: 'relative', display: 'flex', minHeight: 0 }}>
                     {/* Line numbers mock for visual */}
                     <div style={{ width: '40px', background: '#1e1e1e', borderRight: '1px solid #333', color: '#858585', padding: '1rem 0', textAlign: 'right', fontFamily: 'monospace', fontSize: '14px', lineHeight: '1.5', userSelect: 'none', overflow: 'hidden' }}>
                         {[...Array(50)].map((_, i) => <div key={i} style={{ paddingRight: '10px' }}>{i + 1}</div>)}
@@ -94,7 +95,7 @@ const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialS
                     </div>
                 </div>
                 {/* Bottom Bar */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '1rem', background: '#007acc', padding: '0.5rem 1rem', height: '40px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '1rem', background: '#007acc', padding: '0.5rem 1rem', height: '40px', flexShrink: 0 }}>
                     <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
                     <button onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff', color: '#007acc', border: 'none', padding: '0.25rem 1rem', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
                         <Check size={14} /> Apply Changes
