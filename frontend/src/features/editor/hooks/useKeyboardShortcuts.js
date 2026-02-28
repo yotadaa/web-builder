@@ -59,6 +59,35 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
                 actions.toggleGrid?.();
             }
 
+            // Copy: Ctrl + C
+            if (ctrl && key === 'c') {
+                if (alt) {
+                    e.preventDefault();
+                    actions.copyProperties?.();
+                } else if (!isTyping) { // Keep isTyping check for element copy
+                    e.preventDefault();
+                    actions.copyElement?.();
+                }
+            }
+
+            // Paste / Paste Over
+            if (ctrl && key === 'v') {
+                if (alt) {
+                    e.preventDefault();
+                    actions.pasteProperties?.();
+                } else if (!isTyping) { // Keep isTyping check for element paste
+                    e.preventDefault();
+                    if (shift) actions.pasteOverSelection?.();
+                    else actions.pasteElement?.();
+                }
+            }
+
+            // Save: Ctrl + S
+            if (ctrl && key === 's') {
+                e.preventDefault();
+                actions.saveProject?.();
+            }
+
             // 2. Navigation & View
             // Zoom In: Ctrl + + (or = which is the same key)
             if (ctrl && (key === '+' || key === '=')) {

@@ -201,6 +201,12 @@ export const CanvasPage = () => {
     const [clipboardData, setClipboardData] = useState(null);
     const [clipboardStyles, setClipboardStyles] = useState(null);
 
+    // Sidebar widths
+    const [leftWidth, setLeftWidth] = useState(280);
+    const [rightWidth, setRightWidth] = useState(320);
+    const [isResizingLeft, setIsResizingLeft] = useState(false);
+    const [isResizingRight, setIsResizingRight] = useState(false);
+
     const canvasRef = useRef(null);
 
     // Helpers
@@ -422,6 +428,15 @@ export const CanvasPage = () => {
             console.error('Save failed', err);
         }
     };
+
+    // Auto-save effect
+    useEffect(() => {
+        if (!canvasHtml) return;
+        const timer = setTimeout(() => {
+            handleSave();
+        }, 3000); // 3 second debounce
+        return () => clearTimeout(timer);
+    }, [canvasHtml]);
 
     const fetchProject = useCallback(async () => {
         try {
@@ -866,6 +881,39 @@ export const CanvasPage = () => {
         };
     }, [isSelectionMode, selectedElementId, accentColor]);
 
+    // Resizing Logic
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (isResizingLeft) {
+                const newWidth = Math.max(200, Math.min(600, e.clientX));
+                setLeftWidth(newWidth);
+            }
+            if (isResizingRight) {
+                const newWidth = Math.max(240, Math.min(600, window.innerWidth - e.clientX));
+                setRightWidth(newWidth);
+            }
+        };
+
+        const handleMouseUp = () => {
+            setIsResizingLeft(false);
+            setIsResizingRight(false);
+            document.body.style.cursor = 'default';
+        };
+
+        if (isResizingLeft || isResizingRight) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+            document.body.style.userSelect = 'auto';
+        };
+    }, [isResizingLeft, isResizingRight]);
+
     if (loading) return <div style={{ background: 'var(--bg-dark)', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading Editor...</div>;
     if (!project) return null;
 
@@ -1002,21 +1050,37 @@ export const CanvasPage = () => {
                 <aside
                     className="glass-panel"
                     style={{
-                        position: isMobile ? 'fixed' : 'relative',
-                        top: isMobile ? (headerOpen ? '60px' : 0) : 'auto',
-                        left: isMobile ? (leftPanelOpen ? 0 : '-280px') : 'auto',
-                        bottom: isMobile ? 0 : 'auto',
-                        width: isMobile ? '280px' : (leftPanelOpen ? '280px' : '0px'),
+                        position: 'fixed',
+                        top: headerOpen ? '60px' : 0,
+                        left: leftPanelOpen ? 0 : `-${leftWidth}px`,
+                        bottom: 0,
+                        width: `${leftWidth}px`,
                         flexShrink: 0,
                         borderRight: leftPanelOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
                         display: 'flex',
                         flexDirection: 'column',
-                        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transition: isResizingLeft ? 'none' : 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                         overflow: 'hidden',
                         zIndex: 1500,
-                        height: isMobile ? 'auto' : '100%'
+                        height: 'auto'
                     }}
                 >
+                    {/* Resize Handle Left */}
+                    <div
+                        onMouseDown={() => setIsResizingLeft(true)}
+                        style={{
+                            position: 'absolute',
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: '4px',
+                            cursor: 'col-resize',
+                            zIndex: 10,
+                            transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = accentColor + '66'}
+                        onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                    />
                     <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Layers size={18} color={accentColor} />
@@ -1112,8 +1176,10 @@ export const CanvasPage = () => {
                 {/* Main Workspace Area */}
                 <main style={{
                     flex: 1,
+                    marginLeft: leftPanelOpen ? `${leftWidth}px` : 0,
+                    marginRight: rightPanelOpen ? `${rightWidth}px` : 0,
                     position: 'relative',
-                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transition: (isResizingLeft || isResizingRight) ? 'none' : 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1316,21 +1382,37 @@ export const CanvasPage = () => {
                 <aside
                     className="glass-panel"
                     style={{
-                        position: isMobile ? 'fixed' : 'relative',
-                        top: isMobile ? (headerOpen ? '60px' : 0) : 'auto',
-                        right: isMobile ? (rightPanelOpen ? 0 : '-320px') : 'auto',
-                        bottom: isMobile ? 0 : 'auto',
-                        width: isMobile ? '320px' : (rightPanelOpen ? '320px' : '0px'),
+                        position: 'fixed',
+                        top: headerOpen ? '60px' : 0,
+                        right: rightPanelOpen ? 0 : `-${rightWidth}px`,
+                        bottom: 0,
+                        width: `${rightWidth}px`,
                         flexShrink: 0,
                         borderLeft: rightPanelOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
-                        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transition: isResizingRight ? 'none' : 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                         overflow: 'hidden',
                         zIndex: 1500,
-                        height: isMobile ? 'auto' : '100%',
+                        height: 'auto',
                         display: 'flex',
                         flexDirection: 'column'
                     }}
                 >
+                    {/* Resize Handle Right */}
+                    <div
+                        onMouseDown={() => setIsResizingRight(true)}
+                        style={{
+                            position: 'absolute',
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: '4px',
+                            cursor: 'col-resize',
+                            zIndex: 10,
+                            transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = accentColor + '66'}
+                        onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                    />
                     <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <span style={{ fontWeight: '600', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>Inspector</span>
