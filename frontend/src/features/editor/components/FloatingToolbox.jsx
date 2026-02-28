@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Copy, Trash2, Edit3, Settings } from 'lucide-react';
+import { Copy, Trash2, Edit3, Settings, Wand2 } from 'lucide-react';
 import Tooltip from '../../../components/ui/Tooltip';
 
 /**
@@ -114,6 +114,14 @@ const FloatingToolbox = ({ selectedElementId, canvasRef, actions, accentColor = 
                     />
                     <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
                     <ActionButton
+                        icon={<Wand2 size={16} />}
+                        label="AI Spark"
+                        onClick={(e) => handleAction(e, () => { })}
+                        hoverColor="#a855f7"
+                        isSpark
+                    />
+                    <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+                    <ActionButton
                         icon={<Trash2 size={16} />}
                         label="Delete"
                         onClick={(e) => handleAction(e, actions.delete)}
@@ -126,7 +134,7 @@ const FloatingToolbox = ({ selectedElementId, canvasRef, actions, accentColor = 
     );
 };
 
-const ActionButton = ({ icon, label, onClick, hoverColor, isDestructive }) => {
+const ActionButton = ({ icon, label, onClick, hoverColor, isDestructive, isSpark }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -143,8 +151,8 @@ const ActionButton = ({ icon, label, onClick, hoverColor, isDestructive }) => {
                     height: '32px',
                     borderRadius: '6px',
                     border: 'none',
-                    background: isHovered ? (isDestructive ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.05)') : 'transparent',
-                    color: isHovered ? hoverColor : 'rgba(255, 255, 255, 0.7)',
+                    background: isSpark ? 'linear-gradient(135deg, #a855f7, #6366f1)' : (isHovered ? (isDestructive ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.05)') : 'transparent'),
+                    color: isSpark ? '#ffffff' : (isHovered ? hoverColor : 'rgba(255, 255, 255, 0.7)'),
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     position: 'relative'
