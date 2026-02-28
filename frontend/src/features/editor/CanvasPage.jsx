@@ -264,40 +264,6 @@ export const CanvasPage = () => {
         });
     }, []);
 
-    const prepareCanvasElements = useCallback((container) => {
-        if (!container) return;
-        const elements = container.querySelectorAll('.canvas-element');
-        elements.forEach(el => {
-            if (!el.getAttribute('data-id')) {
-                const random = Math.random().toString(36).substring(2, 9);
-                el.setAttribute('data-id', `el-${Date.now()}-${random}`);
-            }
-
-            // Text Editing Support
-            const isTextTag = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'BUTTON', 'A', 'LI'].includes(el.tagName);
-            if (isTextTag) {
-                el.contentEditable = 'true';
-
-                // Use onInput for real-time sync without cursor jumps
-                el.oninput = () => {
-                    const newHtml = canvasRef.current.innerHTML;
-                    lastSyncHtmlRef.current = newHtml;
-                    setCanvasHtml(newHtml);
-
-                    // If this element is selected, update inspector HTML too
-                    if (el.getAttribute('data-id') === selectedElementId) {
-                        setEditHtml(el.innerHTML);
-                    }
-                };
-
-                // Blur to ensure final sync and tree refresh
-                el.onblur = () => {
-                    setElementTree(generateTree(canvasRef.current));
-                };
-            }
-        });
-    }, [selectedElementId, generateTree]);
-
     const generateTree = useCallback((node) => {
         if (!node) return [];
 
@@ -348,6 +314,40 @@ export const CanvasPage = () => {
                 };
             });
     }, []);
+
+    const prepareCanvasElements = useCallback((container) => {
+        if (!container) return;
+        const elements = container.querySelectorAll('.canvas-element');
+        elements.forEach(el => {
+            if (!el.getAttribute('data-id')) {
+                const random = Math.random().toString(36).substring(2, 9);
+                el.setAttribute('data-id', `el-${Date.now()}-${random}`);
+            }
+
+            // Text Editing Support
+            const isTextTag = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'BUTTON', 'A', 'LI'].includes(el.tagName);
+            if (isTextTag) {
+                el.contentEditable = 'true';
+
+                // Use onInput for real-time sync without cursor jumps
+                el.oninput = () => {
+                    const newHtml = canvasRef.current.innerHTML;
+                    lastSyncHtmlRef.current = newHtml;
+                    setCanvasHtml(newHtml);
+
+                    // If this element is selected, update inspector HTML too
+                    if (el.getAttribute('data-id') === selectedElementId) {
+                        setEditHtml(el.innerHTML);
+                    }
+                };
+
+                // Blur to ensure final sync and tree refresh
+                el.onblur = () => {
+                    setElementTree(generateTree(canvasRef.current));
+                };
+            }
+        });
+    }, [selectedElementId, generateTree]);
 
     const handleApplyEdits = useCallback(() => {
         if (selectedElementId && canvasRef.current) {
@@ -925,95 +925,94 @@ export const CanvasPage = () => {
 
     return (
         <div style={{
+            display: 'flex',
+            flexDirection: 'column',
             height: '100vh',
             width: '100vw',
-            background: 'var(--bg-dark)',
-            color: 'var(--text-main)',
             overflow: 'hidden',
+            background: 'var(--bg-main)',
+            color: 'var(--text-main)',
             position: 'relative'
         }}>
-            {/* Editor Header (Fixed) */}
-            <header
-                className="glass-panel"
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: headerOpen ? '60px' : '0px',
-                    borderBottom: headerOpen ? '1px solid var(--border)' : 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: headerOpen ? '0 1.5rem' : '0',
-                    zIndex: 2000,
-                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                    overflow: 'hidden'
-                }}
-            >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                        <ChevronLeft size={20} />
-                    </button>
-                    <div style={{ height: '24px', width: '1px', background: 'var(--border)' }} />
-                    <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>{project.name}</span>
-                    <span style={{
-                        fontSize: '0.75rem',
-                        color: 'var(--text-muted)',
-                        background: 'rgba(255,255,255,0.05)',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '0.5rem',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        whiteSpace: 'nowrap'
-                    }}>
-                        {project.layout}
-                    </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.5rem' }}>
-                        <button
-                            onClick={() => setLeftPanelOpen(!leftPanelOpen)}
-                            style={{ background: 'none', border: 'none', color: leftPanelOpen ? accentColor : 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
-                            title="Toggle Layers"
-                        >
-                            {leftPanelOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+            {/* Header */}
+            {headerOpen && (
+                <header
+                    className="glass-panel"
+                    style={{
+                        height: '60px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0 1.5rem',
+                        borderBottom: '1px solid rgba(255,255,255,0.1)',
+                        zIndex: 2000,
+                        flexShrink: 0
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                            <ChevronLeft size={20} />
                         </button>
-                        <button
-                            onClick={() => setRightPanelOpen(!rightPanelOpen)}
-                            style={{ background: 'none', border: 'none', color: rightPanelOpen ? accentColor : 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
-                            title="Toggle Inspector"
-                        >
-                            {rightPanelOpen ? <PanelRightClose size={20} /> : <PanelRightOpen size={20} />}
-                        </button>
+                        <div style={{ height: '24px', width: '1px', background: 'var(--border)' }} />
+                        <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>{project.name}</span>
+                        <span style={{
+                            fontSize: '0.75rem',
+                            color: 'var(--text-muted)',
+                            background: 'rgba(255,255,255,0.05)',
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '0.5rem',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            whiteSpace: 'nowrap'
+                        }}>
+                            {project.layout}
+                        </span>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.5rem' }}>
+                            <button
+                                onClick={() => setLeftPanelOpen(!leftPanelOpen)}
+                                style={{ background: 'none', border: 'none', color: leftPanelOpen ? accentColor : 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
+                                title="Toggle Layers"
+                            >
+                                {leftPanelOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+                            </button>
+                            <button
+                                onClick={() => setRightPanelOpen(!rightPanelOpen)}
+                                style={{ background: 'none', border: 'none', color: rightPanelOpen ? accentColor : 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
+                                title="Toggle Inspector"
+                            >
+                                {rightPanelOpen ? <PanelRightClose size={20} /> : <PanelRightOpen size={20} />}
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <button
+                                onClick={handleSave}
+                                className="premium-button"
+                                style={{ height: '36px', padding: '0 1rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                            >
+                                <Save size={18} />
+                                Save
+                            </button>
+                            <button className="premium-button" style={{ height: '36px', padding: '0 1rem', background: '#10b981' }}>
+                                <Play size={18} />
+                                Publish
+                            </button>
+                        </div>
+
+                        <div style={{ height: '24px', width: '1px', background: 'var(--border)' }} />
+
                         <button
-                            onClick={handleSave}
-                            className="premium-button"
-                            style={{ height: '36px', padding: '0 1rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                            onClick={() => setHeaderOpen(false)}
+                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
+                            title="Collapse Header"
                         >
-                            <Save size={18} />
-                            Save
-                        </button>
-                        <button className="premium-button" style={{ height: '36px', padding: '0 1rem', background: '#10b981' }}>
-                            <Play size={18} />
-                            Publish
+                            <ChevronUp size={20} />
                         </button>
                     </div>
-
-                    <div style={{ height: '24px', width: '1px', background: 'var(--border)' }} />
-
-                    <button
-                        onClick={() => setHeaderOpen(false)}
-                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem' }}
-                        title="Collapse Header"
-                    >
-                        <ChevronUp size={20} />
-                    </button>
-                </div>
-            </header>
+                </header>
+            )}
 
             {/* Header Toggle Button */}
             {!headerOpen && (
@@ -1043,32 +1042,28 @@ export const CanvasPage = () => {
                 </button>
             )}
 
-            {/* Layout Wrapper */}
+            {/* Main Content Area (Flex Pillars) */}
             <div style={{
                 display: 'flex',
-                height: '100%',
-                paddingTop: headerOpen ? '60px' : 0,
-                transition: 'padding 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                overflow: 'hidden'
+                flex: 1,
+                overflow: 'hidden',
+                position: 'relative'
             }}>
                 {/* Left Sidebar */}
                 <aside
                     className="glass-panel"
                     style={{
-                        position: 'fixed',
-                        top: headerOpen ? '60px' : 0,
-                        left: leftPanelOpen ? 0 : `-${leftWidth}px`,
-                        bottom: 0,
-                        width: `${leftWidth}px`,
+                        width: leftPanelOpen ? `${leftWidth}px` : 0,
+                        opacity: leftPanelOpen ? 1 : 0,
+                        visibility: leftPanelOpen ? 'visible' : 'hidden',
                         flexShrink: 0,
                         borderRight: leftPanelOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
                         display: 'flex',
                         flexDirection: 'column',
-                        transition: isResizingLeft ? 'none' : 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transition: isResizingLeft ? 'none' : 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
                         overflow: 'hidden',
                         zIndex: 1500,
-                        height: 'auto'
+                        position: 'relative'
                     }}
                 >
                     {/* Resize Handle Left */}
@@ -1182,10 +1177,7 @@ export const CanvasPage = () => {
                 {/* Main Workspace Area */}
                 <main style={{
                     flex: 1,
-                    marginLeft: leftPanelOpen ? `${leftWidth}px` : 0,
-                    marginRight: rightPanelOpen ? `${rightWidth}px` : 0,
                     position: 'relative',
-                    transition: (isResizingLeft || isResizingRight) ? 'none' : 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1388,19 +1380,17 @@ export const CanvasPage = () => {
                 <aside
                     className="glass-panel"
                     style={{
-                        position: 'fixed',
-                        top: headerOpen ? '60px' : 0,
-                        right: rightPanelOpen ? 0 : `-${rightWidth}px`,
-                        bottom: 0,
-                        width: `${rightWidth}px`,
+                        width: rightPanelOpen ? `${rightWidth}px` : 0,
+                        opacity: rightPanelOpen ? 1 : 0,
+                        visibility: rightPanelOpen ? 'visible' : 'hidden',
                         flexShrink: 0,
                         borderLeft: rightPanelOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
-                        transition: isResizingRight ? 'none' : 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transition: isResizingRight ? 'none' : 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
                         overflow: 'hidden',
                         zIndex: 1500,
-                        height: 'auto',
                         display: 'flex',
-                        flexDirection: 'column'
+                        flexDirection: 'column',
+                        position: 'relative'
                     }}
                 >
                     {/* Resize Handle Right */}
