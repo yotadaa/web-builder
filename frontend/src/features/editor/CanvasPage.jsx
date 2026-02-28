@@ -207,6 +207,7 @@ export const CanvasPage = () => {
     const [isResizingRight, setIsResizingRight] = useState(false);
 
     const canvasRef = useRef(null);
+    const lastSyncHtmlRef = useRef(null);
 
     // Helpers
     const parseInlineStyle = (styleString) => {
@@ -273,15 +274,29 @@ export const CanvasPage = () => {
             }
 
             // Text Editing Support
-            if (el.tagName === 'P' || el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'SPAN') {
+            const isTextTag = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'BUTTON', 'A', 'LI'].includes(el.tagName);
+            if (isTextTag) {
                 el.contentEditable = 'true';
-                el.onInput = () => {
+
+                // Use onInput for real-time sync without cursor jumps
+                el.oninput = () => {
                     const newHtml = canvasRef.current.innerHTML;
+                    lastSyncHtmlRef.current = newHtml;
                     setCanvasHtml(newHtml);
+
+                    // If this element is selected, update inspector HTML too
+                    if (el.getAttribute('data-id') === selectedElementId) {
+                        setEditHtml(el.innerHTML);
+                    }
+                };
+
+                // Blur to ensure final sync and tree refresh
+                el.onblur = () => {
+                    setElementTree(generateTree(canvasRef.current));
                 };
             }
         });
-    }, []);
+    }, [selectedElementId, generateTree]);
 
     const generateTree = useCallback((node) => {
         if (!node) return [];
@@ -446,10 +461,18 @@ export const CanvasPage = () => {
 
     useEffect(() => {
         if (canvasRef.current && canvasHtml !== null) {
-            canvasRef.current.innerHTML = canvasHtml;
-            // Tag all elements after rendering HTML
-            prepareCanvasElements(canvasRef.current);
-            setElementTree(generateTree(canvasRef.current));
+            // ONLY update if the incoming HTML is different from what we just synced
+            // This prevents cursor jumps while typing
+            if (canvasRef.current.innerHTML !== canvasHtml && lastSyncHtmlRef.current !== canvasHtml) {
+                canvasRef.current.innerHTML = canvasHtml;
+                prepareCanvasElements(canvasRef.current);
+                setElementTree(generateTree(canvasRef.current));
+            } else if (lastSyncHtmlRef.current !== canvasHtml) {
+                // Just tag if it's the first render or external update that matches DOM
+                prepareCanvasElements(canvasRef.current);
+                setElementTree(generateTree(canvasRef.current));
+            }
+            lastSyncHtmlRef.current = canvasHtml;
         }
     }, [canvasHtml, prepareCanvasElements, generateTree]);
 
@@ -830,7 +853,13 @@ export const CanvasPage = () => {
         const handleClick = (e) => {
             const target = e.target.closest('.canvas-element');
 
-            e.preventDefault();
+            // If we're clicking a contentEditable element, don't preventDefault
+            // so the cursor can actually appear.
+            const isEditable = e.target.isContentEditable || e.target.closest('[contenteditable="true"]');
+
+            if (!isEditable) {
+                e.preventDefault();
+            }
             e.stopPropagation();
 
             const allElements = canvasRef.current.querySelectorAll('.canvas-element');

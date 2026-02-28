@@ -81,8 +81,7 @@ Shortcut untuk memilih elemen dan navigasi antar layer.
 
 ---
 
-# 5️⃣ Element Manipulation (Interact with Element)
-
+foi
 Shortcut yang langsung memodifikasi elemen.
 
 | Fungsi | Windows/Linux | macOS |
