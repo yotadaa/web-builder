@@ -65,7 +65,7 @@ body {
 
 .premium-card {
   background: var(--glass);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: 1rem;
   padding: 2rem;
@@ -73,8 +73,8 @@ body {
 }
 
 .glass-panel {
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }

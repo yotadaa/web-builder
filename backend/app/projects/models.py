@@ -17,6 +17,10 @@ class Project(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(String(1000), nullable=True)
     layout: Mapped[str] = mapped_column(String(50), nullable=False, default="vertical")
+    content: Mapped[str] = mapped_column(String, nullable=True)
+    accent_color: Mapped[str] = mapped_column(
+        String(20), nullable=True, default="#6366f1"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow

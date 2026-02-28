@@ -4,13 +4,15 @@
 - [x] 1.1 Backend: Auth Infrastructure
     - [x] Create `workflow/task.md` for progress tracking
     - [x] Initialize database (PostgreSQL)
-    - [x] JWT & Security Setup
+    - [x] JWT & Security Setup (Session set to 24h)
     - [x] User Model & Schemas
+    - [x] Backend Global Error Handling (500 Debugger)
     - [x] Auth Routes & Service
     - [x] Email Provider Implementation
 - [x] 1.2 Backend: Project Management
     - [x] Project Model & CRUD
-    - [ ] Add `layout` field to Project Model
+    - [x] Add `layout` field to Project Model
+    - [x] Add `content` field to Project Model
 - [x] 1.3 Frontend: Auth & Dashboard
     - [x] Login/Register/Verify Pages
     - [x] Dashboard View
@@ -42,9 +44,31 @@
         - [x] **Zen Mode**: Implemented contextual header toggle that moves between the header and floating tools.
         - [x] **Stable Workspace**: Configured canvas to maintain a constant 0.8x size without shrinking when panels are toggled.
         - [x] **Responsive Workspace**: Main layout architecture finalized and documented.
-- [/] 2.4 Element Tree System <!-- id: 26 -->
-    - [ ] Initial Element Tree representation
-    - [ ] Visual Element Tree sidebar
+- [x] 2.4 Element Tree System <!-- id: 26 -->
+    - [x] Initial Element Tree representation
+    - [x] Visual Element Tree sidebar
+    - [x] Figma-style nesting, icons, and collapsibility
+    - [x] Robust recursive DOM discovery
+    - [x] Deep Discovery & Text Node Wrapping
+    - [x] Smart Layer Naming (Isi text muncul di Tree)
+- [x] 2.5 Keyboard Shortcut System (Figma-style) <!-- id: 30 -->
+    - [x] Navigation & View Shortcuts (Zoom, Pan)
+    - [x] Selection & Manipulation Shortcuts (Group, Duplicate)
+    - [x] UI Control Shortcuts (Toggle Panels, Search)
+    - [x] Tool Selection Shortcuts (Move, Text, etc.)
+    - [x] Hierarchical Shortcuts (Enter, Shift+Enter, Tab)
+    - [x] Full Screen Toggle (Ctrl + /)
+    - [x] Default Sidebar State (Closed on start)
+- [x] 2.6 Persistence & Data Integrity
+    - [x] Backend 'content' persistence (SQLAlchemy + Pydantic)
+    - [x] Database Migrations (Alembic)
+    - [x] Frontend 'handleSave' Integration
+    - [x] Load State from server on initialization
+- [x] 2.7 Element Addition & Validation
+    - [x] Floating Notification (Glassmorphism)
+    - [x] Selection Validation (Add element restricted if no selection)
+    - [x] Add Element Keyboard Shortcut (A)
+    - [x] Element Tree Sync & selection (Child added to parent)
 
 ## Phase 3: AI Fast Pipeline
 - [ ] 3.1 AI Gateway

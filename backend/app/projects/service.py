@@ -23,6 +23,8 @@ async def create_project(
         name=project_in.name,
         description=project_in.description,
         layout=project_in.layout,
+        content=project_in.content,
+        accent_color=project_in.accent_color,
     )
     db.add(db_project)
     await db.commit()
@@ -40,10 +42,14 @@ async def get_project(db: AsyncSession, project_id: uuid.UUID, user_id: uuid.UUI
 async def update_project(
     db: AsyncSession, db_project: Project, project_in: ProjectUpdate
 ):
+    print(
+        f"Updating project {db_project.id} with data: {project_in.model_dump(exclude_unset=True)}"
+    )
     for field, value in project_in.model_dump(exclude_unset=True).items():
         setattr(db_project, field, value)
     await db.commit()
     await db.refresh(db_project)
+    print(f"Project {db_project.id} updated successfully")
     return db_project
 
 

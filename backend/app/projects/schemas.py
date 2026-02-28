@@ -8,6 +8,8 @@ class ProjectBase(BaseModel):
     name: str
     description: Optional[str] = None
     layout: str = "vertical"
+    content: Optional[str] = None
+    accent_color: Optional[str] = "#6366f1"
 
 
 class ProjectCreate(ProjectBase):
@@ -17,6 +19,8 @@ class ProjectCreate(ProjectBase):
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    content: Optional[str] = None
+    accent_color: Optional[str] = None
 
 
 class ProjectResponse(ProjectBase):
