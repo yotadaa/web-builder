@@ -39,7 +39,13 @@
 - [x] **Optimized Rendering**: Replaced redundant DOM syncs with robust tree generation logic.
 - [x] **Element Manipulation**: Implemented "Add Element" (+), Duplicate (Ctrl+D), Rename (Ctrl+R), Copy/Paste (Ctrl+C/V), and Property Copy/Paste (Ctrl+Alt+C/V).
 
+### 7. AI Spark Assistant
+- [x] **Contextual Generation**: Full integration for selected elements or entire canvas, passing existing HTML, classes, global CSS, and global JS.
+- [x] **Multi-Variant Preview**: A `SparkModal` that fetches 3 distinct JSON-structured suggestions and provides sandbox previewing before applying.
+- [x] **Model Routing & Fallback**: Backend intelligently routes requests to OpenAI or Gemini SDKs. Uses a fallback mechanism traversing 6 API keys on 429 quota exhaustion.
+- [x] **Custom Model Selector**: Implemented a framerless custom React dropdown with more than 20 model options across OpenAI and Gemini providers.
+
 ## Next Steps
-1. Implement AI Fast Pipeline (Phase 3) for quick UI generations.
-2. Develop 'Think' Pipeline (Phase 4) for complex design reasoning.
-3. Enhance element manipulation (drag-and-drop, resizing).
+1. Enhance element manipulation (drag-and-drop, resizing).
+2. Refine canvas interaction controls (rulers, snap-to-grid).
+3. Expand AI complex reasoning pipelines for complete page generation.
