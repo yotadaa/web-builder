@@ -11,11 +11,11 @@
 - [x] **Fixed Panels**: Sidebar and Header now use a robust fixed positioning system relative to the viewport.
 - [x] **Floating Navigation Tools**: Centralized toggles for sidebars and selection mode into a right-aligned floating group.
 - [x] **Zen Mode**: Implemented contextual header toggle that moves between the header and floating tools.
-- [x] **Responsive Workspace**: Main canvas area automatically adjusts padding to accommodate open sidebars.
+- [x] **Stable Workspace**: Configured canvas to maintain a constant 0.8x size without shrinking when panels are toggled.
 
 ### 3. Canvas Scaling
 - [x] **Visual Framing**: Canvas container set to `80vw` and `80vh`.
-- [/] **Scaling Logic**: Refining templates to treat the canvas as the viewport (eliminating `100vh` conflicts).
+- [x] **Scaling Logic**: Refined templates to treat the canvas as the viewport (eliminating `100vh` conflicts).
 
 ## Next Steps
 1. Finalize canvas content scaling to ensure templates fit perfectly within the `0.8x` frame.

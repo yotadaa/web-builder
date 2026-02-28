@@ -397,16 +397,13 @@ export const CanvasPage = () => {
                 </button>
             </div>
 
-            {/* Main Workspace Area (Scrollable) */}
+            {/* Main Workspace Area (Stable) */}
             <main style={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 right: 0,
                 bottom: 0,
-                paddingTop: headerOpen ? '60px' : '0px',
-                paddingLeft: leftPanelOpen ? '280px' : '0px',
-                paddingRight: rightPanelOpen ? '320px' : '0px',
                 transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                 display: 'flex',
                 alignItems: 'center',

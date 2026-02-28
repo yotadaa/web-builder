@@ -37,10 +37,11 @@
     - [x] Collapsible Sidebars & Header (Workspace management)
     - [x] Premium UI Refinements <!-- id: 28 -->
     - [x] Workspace Layout Refactoring <!-- id: 29 -->
-        - [x] Fixed positioning for sidebars and header
-        - [x] Floating Navigation Tools (Right-aligned)
-        - [x] Contextual Header toggle logic
-        - [/] Canvas element scaling refinement
+        - [x] **Fixed Panels**: Sidebar and Header now use a robust fixed positioning system relative to the viewport.
+        - [x] **Floating Navigation Tools**: Centralized toggles for sidebars and selection mode into a right-aligned floating group.
+        - [x] **Zen Mode**: Implemented contextual header toggle that moves between the header and floating tools.
+        - [x] **Stable Workspace**: Configured canvas to maintain a constant 0.8x size without shrinking when panels are toggled.
+        - [x] **Responsive Workspace**: Main layout architecture finalized and documented.
 - [/] 2.4 Element Tree System <!-- id: 26 -->
     - [ ] Initial Element Tree representation
     - [ ] Visual Element Tree sidebar
