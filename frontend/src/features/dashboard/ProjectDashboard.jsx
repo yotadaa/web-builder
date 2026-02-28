@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import api from '../../shared/api/client';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Folder, Layout, LogOut, Search, Clock, ChevronRight, X, Check, Monitor, Sidebar, Columns, Grid, CreditCard, AppWindow, Rows } from 'lucide-react';
 
 const LAYOUTS = [
@@ -255,8 +256,15 @@ const NewProjectModal = ({ onClose, onCreated }) => {
 };
 
 const ProjectCard = ({ project }) => {
+    const navigate = useNavigate();
     return (
-        <div className="premium-card" style={{ padding: '1.5rem', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+        <div
+            className="premium-card"
+            style={{ padding: '1.5rem', cursor: 'pointer', transition: 'transform 0.2s' }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            onClick={() => navigate(`/project/${project.id}`)}
+        >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '0.75rem', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
                     <Layout size={20} />

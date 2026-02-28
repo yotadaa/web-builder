@@ -24,10 +24,17 @@
     - [ ] 6. Card-Based
     - [ ] 7. Workspace / App
 
-## Phase 2: Canvas & Editor
-- [ ] 2.1 Element Tree System
-- [ ] 2.2 Mutation Engine
-- [ ] 2.3 Canvas Renderer
+## Phase 2: Canvas & Editor Foundation
+- [x] 2.1 Navigation & Layout Rendering <!-- id: 23 -->
+    - [x] Routing for Canvas Page (`/project/:id`)
+    - [x] Render base structure from `layouts.md` based on `project.layout`
+- [x] 2.2 Selection Mode & Element Highlighting <!-- id: 24 -->
+    - [x] Toggle Selection Mode in Editor
+    - [x] Visual Hover/Click Highlighting for elements
+    - [x] Selected Element state management
+- [/] 2.3 Element Tree System <!-- id: 25 -->
+    - [ ] Initial Element Tree representation
+    - [ ] Visual Element Tree sidebar
 
 ## Phase 3: AI Fast Pipeline
 - [ ] 3.1 AI Gateway

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './features/auth/LoginPage';
 import { RegisterPage } from './features/auth/RegisterPage';
 import { ProjectDashboard } from './features/dashboard/ProjectDashboard';
+import { CanvasPage } from './features/editor/CanvasPage';
 import { useAuth } from './features/auth/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
@@ -24,6 +25,14 @@ function App() {
         element={
           <ProtectedRoute>
             <ProjectDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/project/:id"
+        element={
+          <ProtectedRoute>
+            <CanvasPage />
           </ProtectedRoute>
         }
       />
