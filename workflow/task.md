@@ -40,6 +40,7 @@
         - [x] Fixed positioning for sidebars and header
         - [x] Floating Navigation Tools (Right-aligned)
         - [x] Contextual Header toggle logic
+        - [/] Canvas element scaling refinement
 - [/] 2.4 Element Tree System <!-- id: 26 -->
     - [ ] Initial Element Tree representation
     - [ ] Visual Element Tree sidebar
