@@ -165,12 +165,6 @@ export const useKeyboardShortcuts = (actions, disabled = false) => {
                 // Only if not typing
                 actions.deleteElement?.();
             }
-
-            // Save: Ctrl + S
-            if (ctrl && key === 's') {
-                e.preventDefault();
-                actions.saveProject?.();
-            }
         };
 
         window.addEventListener('keydown', handleKeyDown);

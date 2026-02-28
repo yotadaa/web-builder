@@ -188,7 +188,6 @@ export const CanvasPage = () => {
     const [zoom, setZoom] = useState(1);
     const [elementTree, setElementTree] = useState([]);
     const [expandedNodes, setExpandedNodes] = useState(new Set(['canvas']));
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
     const [canvasHtml, setCanvasHtml] = useState(null);
 
     // Inspector Edit States
@@ -387,10 +386,10 @@ export const CanvasPage = () => {
             prepareCanvasElements(canvasRef.current);
             setElementTree(generateTree(canvasRef.current));
         }
-    };
+    }, [selectedElementId, editHtml, editClasses, cssProperties, stringifyProperties, prepareCanvasElements, generateTree]);
 
-    const handleSave = async () => {
-        if (!canvasRef.current) return;
+    const handleSave = useCallback(async () => {
+        if (!id || !canvasRef.current) return;
 
         // Auto-apply pending edits from inspector if an element is selected
         if (selectedElementId) {
@@ -398,36 +397,31 @@ export const CanvasPage = () => {
         }
 
         try {
-            // 1. Get current selection to re-apply later
-            const currentSelectedId = selectedElementId;
-
-            // 2. Clear visual highlights for a clean save
+            // 1. Clear visual highlights for a clean save
             const allElements = canvasRef.current.querySelectorAll('.canvas-element');
             allElements.forEach(el => el.classList.remove('element-selected', 'element-hovered'));
 
-            // 3. Get clean HTML content
+            // 2. Save to backend
             const cleanHtml = canvasRef.current.innerHTML;
-
-            // 4. Restore visual highlights for the UI
-            if (currentSelectedId && currentSelectedId !== 'canvas') {
-                const el = canvasRef.current.querySelector(`[data-id="${currentSelectedId}"]`);
-                if (el) el.classList.add('element-selected');
-            }
-
-            // 5. Save to backend
-            await api.patch(`/projects/${id}`, {
+            await api.put(`/projects/${id}`, {
+                name: project.name,
                 content: cleanHtml,
                 accent_color: accentColor
             });
 
-            // 6. Update local state
-            setCanvasHtml(cleanHtml);
+            // 3. Restore visual highlights for the UI
+            if (selectedElementId && selectedElementId !== 'canvas') {
+                const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
+                if (el) el.classList.add('element-selected');
+            }
 
+            // 4. Update local state to match
+            setCanvasHtml(cleanHtml);
             console.log('Project saved successfully');
         } catch (err) {
             console.error('Save failed', err);
         }
-    };
+    }, [id, project?.name, accentColor, selectedElementId, handleApplyEdits]);
 
     // Auto-save effect
     useEffect(() => {
@@ -436,7 +430,7 @@ export const CanvasPage = () => {
             handleSave();
         }, 3000); // 3 second debounce
         return () => clearTimeout(timer);
-    }, [canvasHtml]);
+    }, [canvasHtml, handleSave]);
 
     const fetchProject = useCallback(async () => {
         try {
@@ -451,11 +445,7 @@ export const CanvasPage = () => {
     }, [id, navigate]);
 
     // Effects
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 1024);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    /* Removed unused isMobile resize effect */
 
     useEffect(() => {
         if (id) {
