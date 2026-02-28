@@ -41,6 +41,7 @@
         - [x] Updated canvas element hover to use `::after` overlay with low opacity
         - [x] Verified full frontend compliance (no native alert/confirm/prompt/select)
         - [x] VS Code-style Detailed Config Modal with HTML/CSS/JS tabs (Ctrl+E)
+        - [x] Linked inline styles to the `style.css` config tab
     - [x] Workspace Layout Refactoring <!-- id: 29 -->
         - [x] **Fixed Panels**: Sidebar and Header now use a robust fixed positioning system relative to the viewport.
         - [x] **Floating Navigation Tools**: Centralized toggles for sidebars and selection mode into a right-aligned floating group.

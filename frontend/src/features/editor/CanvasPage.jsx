@@ -403,13 +403,14 @@ export const CanvasPage = () => {
         }
     };
 
-    const handleSaveDetailedConfig = ({ html, classes, js }) => {
+    const handleSaveDetailedConfig = ({ html, styles, classes, js }) => {
         if (!selectedElementId || selectedElementId === 'canvas') return;
         pushHistory(canvasRef.current.innerHTML);
         const el = canvasRef.current.querySelector(`[data-id="${selectedElementId}"]`);
         if (el) {
             el.innerHTML = html;
             el.className = classes;
+            el.style.cssText = styles;
             el.classList.add('canvas-element', 'element-selected');
             el.setAttribute('data-js', js);
             prepareCanvasElements(canvasRef.current);
@@ -417,6 +418,7 @@ export const CanvasPage = () => {
             setNotification('Detailed config updated');
             setEditHtml(html);
             setEditClasses(classes);
+            setCssProperties(parseInlineStyle(styles));
             setEditJs(js);
             handleSave();
         }
@@ -1797,6 +1799,7 @@ export const CanvasPage = () => {
                 onClose={() => setIsDetailedConfigOpen(false)}
                 elementId={selectedElementId}
                 initialHtml={editHtml}
+                initialStyles={cssProperties.filter(p => p.prop && p.value).map(p => `${p.prop}: ${p.value};`).join('\n')}
                 initialClasses={editClasses}
                 initialJs={editJs}
                 onSave={handleSaveDetailedConfig}

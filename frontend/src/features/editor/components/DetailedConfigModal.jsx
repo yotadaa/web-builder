@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { X, Code, Layers, FileJson, Check } from 'lucide-react';
 
-const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialClasses, initialJs, onSave, accentColor = '#6366f1' }) => {
+const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialStyles, initialClasses, initialJs, onSave, accentColor = '#6366f1' }) => {
     const [activeTab, setActiveTab] = useState('html');
     const [html, setHtml] = useState('');
+    const [styles, setStyles] = useState('');
     const [classes, setClasses] = useState('');
     const [js, setJs] = useState('');
 
     useEffect(() => {
         if (isOpen) {
             setHtml(initialHtml || '');
+            setStyles(initialStyles || '');
             setClasses(initialClasses || '');
             setJs(initialJs || '');
-            setActiveTab('html');
+            setActiveTab('css'); // Focus css directly if it's the requested tab, or default to html
         }
-    }, [isOpen, initialHtml, initialClasses, initialJs]);
+    }, [isOpen, initialHtml, initialStyles, initialClasses, initialJs]);
 
     if (!isOpen) return null;
 
     const tabs = [
         { id: 'html', label: 'index.html', icon: Code, color: '#e34c26' },
-        { id: 'css', label: 'classes.css', icon: Layers, color: '#264de4' },
+        { id: 'css', label: 'style.css', icon: Layers, color: '#264de4' },
         { id: 'js', label: 'script.js', icon: FileJson, color: '#f7df1e' }
     ];
 
@@ -41,14 +43,25 @@ const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialC
     const getEditorContent = () => {
         switch (activeTab) {
             case 'html': return <textarea value={html} onChange={e => setHtml(e.target.value)} spellCheck={false} style={editorStyle} />;
-            case 'css': return <textarea value={classes} onChange={e => setClasses(e.target.value)} spellCheck={false} placeholder="Enter class names separated by spaces..." style={editorStyle} />;
+            case 'css': return (
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
+                    <div>
+                        <div style={{ fontSize: '11px', color: '#858585', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>CSS Classes</div>
+                        <input value={classes} onChange={e => setClasses(e.target.value)} spellCheck={false} placeholder="class1 class2..." style={{ ...editorStyle, height: '36px', background: 'rgba(0,0,0,0.2)', padding: '0 8px', borderRadius: '4px', border: '1px solid #333' }} />
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ fontSize: '11px', color: '#858585', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Inline Styles</div>
+                        <textarea value={styles} onChange={e => setStyles(e.target.value)} spellCheck={false} placeholder="color: red;&#10;margin-top: 10px;" style={{ ...editorStyle, flex: 1 }} />
+                    </div>
+                </div>
+            );
             case 'js': return <textarea value={js} onChange={e => setJs(e.target.value)} spellCheck={false} placeholder="// Enter JavaScript logic..." style={editorStyle} />;
             default: return null;
         }
     };
 
     const handleSave = () => {
-        onSave({ html, classes, js });
+        onSave({ html, styles, classes, js });
         onClose();
     };
 
