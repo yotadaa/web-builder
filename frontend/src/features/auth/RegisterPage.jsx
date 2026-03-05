@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, Lock, Loader2 } from 'lucide-react';
+import { UserPlus, Mail, Lock } from 'lucide-react';
+import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 
 export const RegisterPage = () => {
     const [email, setEmail] = useState('');
@@ -59,55 +61,43 @@ export const RegisterPage = () => {
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <label style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-muted)' }}>Email Address</label>
-                        <div style={{ position: 'relative' }}>
-                            <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                            <input
-                                type="email"
-                                className="premium-input"
-                                style={{ paddingLeft: '3rem' }}
-                                placeholder="you@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
+                        <Input
+                            type="email"
+                            icon={Mail}
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <label style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-muted)' }}>Password</label>
-                        <div style={{ position: 'relative' }}>
-                            <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                            <input
-                                type="password"
-                                className="premium-input"
-                                style={{ paddingLeft: '3rem' }}
-                                placeholder="min. 8 characters"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                        </div>
+                        <Input
+                            type="password"
+                            icon={Lock}
+                            placeholder="min. 8 characters"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <label style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-muted)' }}>Confirm Password</label>
-                        <div style={{ position: 'relative' }}>
-                            <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                            <input
-                                type="password"
-                                className="premium-input"
-                                style={{ paddingLeft: '3rem' }}
-                                placeholder="confirm your password"
-                                value={passwordConfirm}
-                                onChange={(e) => setPasswordConfirm(e.target.value)}
-                                required
-                            />
-                        </div>
+                        <Input
+                            type="password"
+                            icon={Lock}
+                            placeholder="confirm your password"
+                            value={passwordConfirm}
+                            onChange={(e) => setPasswordConfirm(e.target.value)}
+                            required
+                        />
                     </div>
 
-                    <button type="submit" className="premium-button" disabled={isSubmitting}>
-                        {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Register'}
-                    </button>
+                    <Button type="submit" loading={isSubmitting}>
+                        Register
+                    </Button>
                 </form>
 
                 <p style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-muted)' }}>

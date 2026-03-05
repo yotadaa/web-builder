@@ -3,6 +3,9 @@ import { useAuth } from '../auth/AuthContext';
 import api from '../../shared/api/client';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Folder, Layout, LogOut, Search, Clock, ChevronRight, X, Check, Monitor, Sidebar, Columns, Grid, CreditCard, AppWindow, Rows } from 'lucide-react';
+import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
+import { Textarea } from '../../components/ui/Textarea';
 
 const LAYOUTS = [
     { id: 'vertical', name: 'Vertical / Single Column', icon: Monitor, desc: 'Best for landing pages and simple sites' },
@@ -46,72 +49,76 @@ export const ProjectDashboard = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--bg-dark)' }}>
-            {/* Navbar */}
-            <nav style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '1rem 2rem',
-                background: 'var(--glass)',
-                borderBottom: '1px solid var(--border)',
-                backdropFilter: 'blur(10px)',
-                position: 'sticky',
-                top: 0,
-                zIndex: 50
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <Layout size={32} color="var(--primary)" />
-                    <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>WebBuilder AI</span>
-                </div>
+        <div style={{ minHeight: '100vh', background: 'var(--bg-dark)', position: 'relative', overflow: 'hidden' }}>
+            {/* Background Decorators */}
+            <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '500px', height: '500px', background: 'var(--primary)', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.15, pointerEvents: 'none', zIndex: 0 }} />
+            <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '600px', height: '600px', background: '#a855f7', borderRadius: '50%', filter: 'blur(150px)', opacity: 0.1, pointerEvents: 'none', zIndex: 0 }} />
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{user?.email}</span>
-                    <button onClick={logout} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <LogOut size={18} />
-                        Logout
-                    </button>
-                </div>
-            </nav>
-
-            {/* Main Content */}
-            <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>My Projects</h1>
-                    <button className="premium-button" onClick={() => setIsModalOpen(true)}>
-                        <Plus size={20} />
-                        New Project
-                    </button>
-                </div>
-
-                {/* Search Bar */}
-                <div style={{ position: 'relative', marginBottom: '2rem' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                    <input
-                        type="text"
-                        className="premium-input"
-                        style={{ paddingLeft: '3rem' }}
-                        placeholder="Search projects..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '4rem' }}>Loading projects...</div>
-                ) : filteredProjects.length > 0 ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-                        {filteredProjects.map(project => (
-                            <ProjectCard key={project.id} project={project} />
-                        ))}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+                {/* Navbar */}
+                <nav style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '1rem 2rem',
+                    background: 'var(--glass)',
+                    borderBottom: '1px solid var(--border)',
+                    backdropFilter: 'blur(12px)',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 50
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <Layout size={32} color="var(--primary)" />
+                        <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>WebBuilder AI</span>
                     </div>
-                ) : (
-                    <div style={{ textAlign: 'center', padding: '4rem', background: 'var(--glass)', borderRadius: '1rem', border: '1px dashed var(--border)' }}>
-                        <Folder size={48} style={{ margin: '0 auto 1rem', color: 'var(--text-muted)' }} />
-                        <p style={{ color: 'var(--text-muted)' }}>No projects found. Create your first one!</p>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{user?.email}</span>
+                        <button onClick={logout} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <LogOut size={18} />
+                            Logout
+                        </button>
                     </div>
-                )}
-            </main>
+                </nav>
+
+                {/* Main Content */}
+                <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                        <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>My Projects</h1>
+                        <Button onClick={() => setIsModalOpen(true)} icon={Plus}>
+                            New Project
+                        </Button>
+                    </div>
+
+                    {/* Search Bar */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <Input
+                            type="text"
+                            icon={Search}
+                            placeholder="Search projects..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '4rem' }}>Loading projects...</div>
+                    ) : filteredProjects.length > 0 ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                            {filteredProjects.map(project => (
+                                <ProjectCard key={project.id} project={project} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '4rem', background: 'var(--glass)', borderRadius: '1rem', border: '1px dashed var(--border)' }}>
+                            <Folder size={48} style={{ margin: '0 auto 1rem', color: 'var(--text-muted)' }} />
+                            <p style={{ color: 'var(--text-muted)' }}>No projects found. Create your first one!</p>
+                        </div>
+                    )}
+                </main>
+
+            </div>
 
             {isModalOpen && <NewProjectModal onClose={() => setIsModalOpen(false)} onCreated={handleProjectCreated} />}
         </div>
@@ -161,9 +168,8 @@ const NewProjectModal = ({ onClose, onCreated }) => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             <label style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-muted)' }}>Project Name</label>
-                            <input
+                            <Input
                                 type="text"
-                                className="premium-input"
                                 placeholder="My Awesome Website"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
@@ -173,9 +179,7 @@ const NewProjectModal = ({ onClose, onCreated }) => {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             <label style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-muted)' }}>Description (Optional)</label>
-                            <textarea
-                                className="premium-input"
-                                style={{ minHeight: '80px', padding: '1rem', resize: 'vertical' }}
+                            <Textarea
                                 placeholder="What is this project about?"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
@@ -235,19 +239,12 @@ const NewProjectModal = ({ onClose, onCreated }) => {
                     </div>
 
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                        <button type="button" onClick={onClose} style={{
-                            padding: '0.75rem 1.5rem',
-                            borderRadius: '0.5rem',
-                            border: '1px solid var(--border)',
-                            background: 'transparent',
-                            color: 'var(--text)',
-                            cursor: 'pointer'
-                        }}>
+                        <Button type="button" variant="ghost" onClick={onClose} style={{ border: '1px solid var(--border)' }}>
                             Cancel
-                        </button>
-                        <button type="submit" className="premium-button" disabled={isSubmitting || !name}>
-                            {isSubmitting ? 'Creating...' : 'Create Project'}
-                        </button>
+                        </Button>
+                        <Button type="submit" disabled={!name} loading={isSubmitting}>
+                            Create Project
+                        </Button>
                     </div>
                 </form>
             </div>

@@ -11,4 +11,4 @@ python-dotenv
 pydantic[email]
 httpx
 openai
-google-generativeai
+google-genai

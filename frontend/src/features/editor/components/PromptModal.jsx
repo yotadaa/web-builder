@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Modal from '../../../components/ui/Modal';
+import { Input } from '../../../components/ui/Input';
+import { Button } from '../../../components/ui/Button';
 
 const PromptModal = ({
     isOpen,
@@ -55,10 +57,9 @@ const PromptModal = ({
                             {label}
                         </label>
                     )}
-                    <input
+                    <Input
                         ref={inputRef}
                         type="text"
-                        className="premium-input"
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         onKeyDown={handleKeyDown}
@@ -73,34 +74,12 @@ const PromptModal = ({
                     justifyContent: 'flex-end',
                     marginTop: '0.5rem'
                 }}>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            padding: '0.625rem 1.25rem',
-                            borderRadius: '0.75rem',
-                            border: '1px solid var(--border)',
-                            background: 'transparent',
-                            color: 'var(--text)',
-                            fontSize: '0.875rem',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
+                    <Button variant="ghost" onClick={onClose} style={{ border: '1px solid var(--border)' }}>
                         {cancelText}
-                    </button>
-                    <button
-                        onClick={handleConfirm}
-                        className="premium-button"
-                        style={{
-                            padding: '0.625rem 1.25rem',
-                            fontSize: '0.875rem',
-                        }}
-                    >
+                    </Button>
+                    <Button onClick={handleConfirm}>
                         {confirmText}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </Modal>

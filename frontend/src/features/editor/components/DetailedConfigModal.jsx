@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Code, Layers, FileJson, Check, Wand2 } from 'lucide-react';
+import { Input } from '../../../components/ui/Input';
+import { Button } from '../../../components/ui/Button';
 import Editor from 'react-simple-code-editor';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
@@ -64,7 +66,13 @@ const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialS
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
                     <div>
                         <div style={{ fontSize: '11px', color: '#858585', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>CSS Classes</div>
-                        <input value={classes} onChange={e => setClasses(e.target.value)} spellCheck={false} placeholder="class1 class2..." style={{ ...editorStyle, height: '36px', background: 'rgba(0,0,0,0.2)', padding: '0 8px', borderRadius: '4px', border: '1px solid #333', overflowY: 'hidden' }} />
+                        <Input
+                            value={classes}
+                            onChange={e => setClasses(e.target.value)}
+                            spellCheck={false}
+                            placeholder="class1 class2..."
+                            inputStyle={{ height: '36px', overflowY: 'hidden', ...editorStyle }}
+                        />
                     </div>
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <div style={{ fontSize: '11px', color: '#858585', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Inline Styles</div>
@@ -119,9 +127,9 @@ const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialS
                         ))}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', paddingRight: '0.5rem' }}>
-                        <button onClick={onSpark} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #a855f7, #6366f1)', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                            <Wand2 size={12} /> AI Spark
-                        </button>
+                        <Button onClick={onSpark} style={{ background: 'linear-gradient(135deg, #a855f7, #6366f1)', padding: '4px 12px', fontSize: '11px', height: '28px' }} icon={Wand2}>
+                            AI Spark
+                        </Button>
                     </div>
                 </div>
                 {/* Editor Area */}
@@ -136,11 +144,11 @@ const DetailedConfigModal = ({ isOpen, onClose, elementId, initialHtml, initialS
                     </div>
                 </div>
                 {/* Bottom Bar */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '1rem', background: '#007acc', padding: '0.5rem 1rem', height: '40px', flexShrink: 0 }}>
-                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
-                    <button onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff', color: '#007acc', border: 'none', padding: '0.25rem 1rem', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
-                        <Check size={14} /> Apply Changes
-                    </button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '1rem', background: '#007acc', padding: '0.5rem 1rem', height: '50px', flexShrink: 0 }}>
+                    <Button variant="ghost" onClick={onClose} style={{ color: '#fff', fontSize: '12px', height: '32px' }}>Cancel</Button>
+                    <Button onClick={handleSave} style={{ background: '#fff', color: '#007acc', fontSize: '12px', height: '32px' }} icon={Check}>
+                        Apply Changes
+                    </Button>
                 </div>
             </div>
         </div>

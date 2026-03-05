@@ -1,11 +1,12 @@
 import json
 import os
 from openai import AsyncOpenAI
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from app.ai.schemas import SparkRequest
 
 api_key = os.environ.get("OPENAI_API_KEY")
-client = AsyncOpenAI(api_key=api_key) if api_key else None
+openai_client = AsyncOpenAI(api_key=api_key) if api_key else None
 
 GEMINI_KEYS = [
     os.environ.get("GEMINI_API_KEY_1"),
@@ -28,7 +29,14 @@ You will be provided with:
 4. The user's prompt.
 
 Your goal is to output EXACTLY 3 distinct, creative, and working suggestions that fulfill the prompt.
-A suggestion should modify the HTML/CSS/JS. You can also add Global CSS/JS if absolutely necessary for animations or complex styles. Always use vanilla web technologies (HTML, CSS, JS).
+
+CRITICAL INSTRUCTIONS:
+1. SANDBOXED HTML: The "html" field MUST ONLY contain the innerHTML of the target element. DO NOT include the target element's own tag (e.g., if editing a <div>, do not return <div>...</div>, just the content inside).
+2. ROOT STYLING: Any changes to the target element itself (background, glassmorphism, border, etc.) MUST be placed in the "css_classes" or "inline_styles" fields.
+3. PRESERVE CONTENT: If the user asks for styling WITHOUT asking to change children/text, you MUST include the existing children/innerHTML in your "html" field.
+4. DECORATIVE ELEMENTS: If adding decorative elements like blurs or orbs, use absolute positioned elements INSIDE the "html" field while preserving original content.
+5. NO OVERWRITE: Do not overwrite the entire structure unless structural changes are explicitly requested.
+6. VANILLA TECH: Always use vanilla HTML/CSS/JS.
 
 Return JSON matching this schema exactly:
 {{
@@ -90,19 +98,19 @@ async def generate_spark_suggestions(request: SparkRequest) -> list:
         last_error = None
         for key in GEMINI_KEYS:
             try:
-                genai.configure(api_key=key)
+                client = genai.Client(api_key=key)
 
                 # Setup specific model
-                model = genai.GenerativeModel(
-                    model_name=request.model,
-                    system_instruction=sys_prompt,
-                    generation_config=genai.GenerationConfig(
+                response = client.models.generate_content(
+                    model=request.model,
+                    contents=user_content,
+                    config=types.GenerateContentConfig(
                         response_mime_type="application/json",
                         temperature=0.7,
+                        system_instruction=sys_prompt,
                     ),
                 )
 
-                response = model.generate_content(user_content)
                 text_content = response.text
                 data = json.loads(text_content)
                 return data.get("suggestions", [])
@@ -127,7 +135,7 @@ async def generate_spark_suggestions(request: SparkRequest) -> list:
 
     else:
         # OpenAI path
-        if not client:
+        if not openai_client:
             raise ValueError("OPENAI_API_KEY is not set.")
 
         # Map internal fake model names to actual openai if necessary, defaults to passing string
@@ -143,7 +151,7 @@ async def generate_spark_suggestions(request: SparkRequest) -> list:
             # User wants to support these in UI, but we fallback to gpt-4o-mini under the hood for OpenAI unless they specifically exist
             openai_model = "gpt-4o-mini"
 
-        response = await client.chat.completions.create(
+        response = await openai_client.chat.completions.create(
             model=openai_model,
             response_format={"type": "json_object"},
             messages=[

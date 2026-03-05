@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Wand2, Loader2, Check, ArrowRight, ChevronDown } from 'lucide-react';
+import { Button } from '../../../components/ui/Button';
+import { Textarea } from '../../../components/ui/Textarea';
 import Editor from 'react-simple-code-editor';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
@@ -18,9 +20,10 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
 
     // Model Selection State
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [selectedModel, setSelectedModel] = useState('gemini-3.0-flash');
+    const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
 
     const MODELS = [
+        { id: 'gemini-flash-latest', label: 'Gemini Flash Latest', group: 'Google Gemini' },
         { id: 'gemini-3.0-flash', label: 'Gemini 3.0 Flash', group: 'Google Gemini' },
         { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', group: 'Google Gemini' },
         { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite', group: 'Google Gemini' },
@@ -121,6 +124,17 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
                     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
                         background: #666;
                     }
+
+                    @keyframes skeletonPulse {
+                        0% { background-color: rgba(255, 255, 255, 0.05); }
+                        50% { background-color: rgba(255, 255, 255, 0.1); }
+                        100% { background-color: rgba(255, 255, 255, 0.05); }
+                    }
+
+                    .skeleton-pulse {
+                        animation: skeletonPulse 1.5s ease-in-out infinite;
+                        border-radius: 6px;
+                    }
                 `}
             </style>
             <div style={{ width: '85vw', height: '85vh', maxWidth: '1200px', background: '#1e1e1e', borderRadius: '12px', border: '1px solid #333', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
@@ -137,11 +151,11 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
                     <div style={{ width: '30%', minWidth: '300px', background: '#252526', borderRight: '1px solid #333', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div>
                             <label style={{ fontSize: '12px', color: '#858585', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', display: 'block' }}>Describe your changes</label>
-                            <textarea
+                            <Textarea
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
                                 placeholder="E.g., Make this button glow with a neon red shadow and add a bouncing animation"
-                                style={{ width: '100%', height: '120px', background: '#1e1e1e', border: '1px solid #333', borderRadius: '6px', padding: '12px', color: '#eaeaea', fontFamily: 'inherit', resize: 'none', outline: 'none' }}
+                                inputStyle={{ minHeight: '120px' }}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                                         handleGenerate();
@@ -173,12 +187,14 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
                                     />
                                     <div style={{
                                         position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-                                        background: '#252526', border: '1px solid #444', borderRadius: '6px',
+                                        background: 'rgba(15, 23, 42, 0.85)',
+                                        backdropFilter: 'blur(8px) saturate(120%)',
+                                        border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '6px',
                                         maxHeight: '200px', overflowY: 'auto', zIndex: 101, boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
                                     }} className="custom-scrollbar">
                                         {['Google Gemini', 'OpenAI / Other'].map(group => (
                                             <div key={group}>
-                                                <div style={{ padding: '6px 12px', fontSize: '10px', color: '#858585', background: '#1e1e1e', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                                                <div style={{ padding: '6px 12px', fontSize: '10px', color: '#94a3b8', background: 'rgba(255, 255, 255, 0.02)', textTransform: 'uppercase', fontWeight: 'bold' }}>
                                                     {group}
                                                 </div>
                                                 {MODELS.filter(m => m.group === group).map(m => (
@@ -202,19 +218,15 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
                             )}
                         </div>
 
-                        <button
+                        <Button
                             onClick={handleGenerate}
-                            disabled={isGenerating || !prompt.trim()}
-                            style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                background: isGenerating ? '#333' : 'linear-gradient(135deg, #a855f7, #6366f1)',
-                                color: isGenerating ? '#888' : '#fff', border: 'none', padding: '12px', borderRadius: '6px',
-                                cursor: isGenerating || !prompt.trim() ? 'not-allowed' : 'pointer', fontWeight: 'bold', transition: 'all 0.2s'
-                            }}
+                            disabled={!prompt.trim()}
+                            loading={isGenerating}
+                            style={{ background: 'linear-gradient(135deg, #a855f7, #6366f1)', width: '100%' }}
+                            icon={Sparkles}
                         >
-                            {isGenerating ? <Loader2 size={16} className="animate-custom-spin" /> : <Sparkles size={16} />}
-                            {isGenerating ? 'Generating...' : Object.keys(suggestions).length > 0 ? 'Regenerate' : 'Generate Suggestions'}
-                        </button>
+                            {Object.keys(suggestions).length > 0 ? 'Regenerate' : 'Generate Suggestions'}
+                        </Button>
 
                         {error && (
                             <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '6px', fontSize: '13px', lineHeight: '1.4' }}>
@@ -222,10 +234,21 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
                             </div>
                         )}
 
+                        {isGenerating && suggestions.length === 0 && (
+                            <div style={{ marginTop: '1rem' }}>
+                                <div style={{ fontSize: '12px', color: '#858585', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Generating Suggestions...</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="skeleton-pulse" style={{ height: '70px', width: '100%' }} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {suggestions.length > 0 && (
                             <div style={{ marginTop: '1rem' }}>
                                 <div style={{ fontSize: '12px', color: '#858585', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Generated Variants</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: isGenerating ? 0.5 : 1, pointerEvents: isGenerating ? 'none' : 'auto' }}>
                                     {suggestions.map((sug, idx) => (
                                         <button
                                             key={idx}
@@ -248,7 +271,16 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
                     </div>
 
                     {/* Right Workspace - Preview & Code */}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#1e1e1e' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#1e1e1e', position: 'relative' }}>
+                        {isGenerating && (
+                            <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'rgba(30,30,30,0.7)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+                                <div className="skeleton-pulse" style={{ width: '80%', height: '60%', borderRadius: '12px' }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#a855f7' }}>
+                                    <Sparkles size={24} className="animate-custom-spin" />
+                                    <span style={{ fontWeight: '600', letterSpacing: '0.5px' }}>Engaging AI Spark...</span>
+                                </div>
+                            </div>
+                        )}
                         {suggestions.length > 0 ? (
                             <>
                                 <div style={{ display: 'flex', borderBottom: '1px solid #333', background: '#252526' }}>
@@ -272,12 +304,18 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
                                         <div style={{ width: '100%', height: '100%', border: '1px dashed #444', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', position: 'relative', overflow: 'hidden' }}>
                                             {/* We inject the style locally so we don't mess up the rest of the app */}
                                             <style>{`
-                                                #spark-preview-container .${activeData.css_classes && activeData.css_classes.replace(/\\s+/g, ' .')} {
+                                                #spark-preview-container-wrapper {
                                                     ${activeData.inline_styles || ''}
                                                 }
                                                 ${activeData.global_css_additions || ''}
                                             `}</style>
-                                            <div id="spark-preview-container" dangerouslySetInnerHTML={{ __html: activeData.html }} />
+                                            <div
+                                                id="spark-preview-container-wrapper"
+                                                className={activeData.css_classes}
+                                                style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            >
+                                                <div id="spark-preview-container" dangerouslySetInnerHTML={{ __html: activeData.html }} />
+                                            </div>
                                             {/* Note: js execution in preview varies in complexity, skipping auto-eval out of safety for straightforward previews */}
                                         </div>
                                     )}
@@ -308,12 +346,13 @@ const SparkModal = ({ isOpen, onClose, context, onApply }) => {
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: '#252526', borderTop: '1px solid #333' }}>
                                     <div style={{ fontSize: '13px', color: '#858585' }}>Displaying Variant {activeSuggestion + 1} of {suggestions.length}</div>
-                                    <button
+                                    <Button
                                         onClick={handleApply}
-                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#a855f7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
+                                        style={{ background: '#a855f7' }}
+                                        icon={Check}
                                     >
-                                        <Check size={16} /> Apply This Variant
-                                    </button>
+                                        Apply This Variant
+                                    </Button>
                                 </div>
                             </>
                         ) : (
